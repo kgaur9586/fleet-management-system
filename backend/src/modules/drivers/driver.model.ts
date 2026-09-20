@@ -92,4 +92,6 @@ const driverSchema = new Schema<IDriver>(
   }
 );
 
+driverSchema.index({ isDeleted: 1, isActive: 1 });
+
 export const DriverModel = mongoose.model<IDriver>('Driver', driverSchema);

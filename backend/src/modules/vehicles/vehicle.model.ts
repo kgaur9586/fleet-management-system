@@ -90,4 +90,6 @@ vehicleSchema.pre('save', function (next) {
   next();
 });
 
+vehicleSchema.index({ isDeleted: 1, isActive: 1 });
+
 export const VehicleModel = mongoose.model<IVehicle>('Vehicle', vehicleSchema);

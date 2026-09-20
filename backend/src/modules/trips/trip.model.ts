@@ -9,6 +9,7 @@ export interface ITrip extends Document {
   firmId: mongoose.Types.ObjectId;
   contractId: mongoose.Types.ObjectId;
   contractVersionId: mongoose.Types.ObjectId;
+  billingInvoiceId?: mongoose.Types.ObjectId;
   routeId?: mongoose.Types.ObjectId;
   pickupLocation: string;
   dropLocation: string;
@@ -37,6 +38,7 @@ const tripSchema = new Schema<ITrip>(
     firmId: { type: Schema.Types.ObjectId, ref: 'Firm', required: true, index: true },
     contractId: { type: Schema.Types.ObjectId, ref: 'Contract', required: true, index: true },
     contractVersionId: { type: Schema.Types.ObjectId, ref: 'ContractVersion', required: true, index: true },
+    billingInvoiceId: { type: Schema.Types.ObjectId, ref: 'Invoice', index: true },
     routeId: { type: Schema.Types.ObjectId, ref: 'Route', index: true },
     pickupLocation: { type: String, required: true, trim: true },
     dropLocation: { type: String, required: true, trim: true },
@@ -65,5 +67,6 @@ const tripSchema = new Schema<ITrip>(
 tripSchema.index({ firmId: 1, tripDate: -1 });
 tripSchema.index({ vehicleId: 1, tripDate: -1 });
 tripSchema.index({ driverId: 1, tripDate: -1 });
+tripSchema.index({ isDeleted: 1, operationalStatus: 1, tripDate: 1 });
 
 export const TripModel = mongoose.model<ITrip>('Trip', tripSchema);

@@ -1,43 +1,50 @@
-import { tripsApi } from './tripsApi';
-import { vehiclesApi } from './vehiclesApi';
+import apiClient from './apiClient';
 
-const toDateParam = (date: Date) => date.toISOString().slice(0, 10);
-const toMonthParam = (date: Date) => date.toISOString().slice(0, 7);
+export interface VehicleTotal {
+  vehicleId: string;
+  registrationNumber: string;
+  vehicleType: string | null;
+  totalTrips: number;
+  totalKm: number;
+  contractualAverage: string;
+  contractualFuelQuantity: number;
+  fuelRate: string;
+  fuelReimbursement: number;
+  hiringUnits: number;
+  hiringAmount: number;
+  billableToll: number;
+  otherBillableAmount: number;
+  total: number;
+  count: number;
+}
+
+export interface DocumentAlert {
+  documentId: string;
+  vehicleId: string;
+  registrationNumber: string;
+  documentType: string;
+  documentNumber?: string;
+  expiryDate: string;
+}
 
 export interface DashboardSnapshot {
-  fleet: {
-    totalVehicles: number;
-    activeVehicles: number;
-    inactiveVehicles: number;
+  period: { month: number; year: number };
+  fleet: { totalVehicles: number; activeVehicles: number; inactiveVehicles: number; totalDrivers: number };
+  operations: { tripsToday: number; tripsThisMonth: number };
+  finance: {
+    monthlyBilling: number;
+    monthlyPaymentsReceived: number;
+    outstandingInvoices: { count: number; amount: number };
+    monthlyExpenses: number;
   };
-  operations: {
-    tripsToday: number;
-    tripsThisMonth: number;
-    vehiclesCurrentlyActive: number;
-  };
+  vehicleBilling: VehicleTotal[];
+  vehicleExpenses: VehicleTotal[];
+  documentAlerts: { expiringSoon: DocumentAlert[]; expired: DocumentAlert[] };
+  source: { billingInvoiceCount: number; paymentCount: number; expenseCount: number };
 }
 
 export async function getDashboardSnapshot(date = new Date()): Promise<DashboardSnapshot> {
-  const today = toDateParam(date);
-  const month = toMonthParam(date);
-  const [allVehicles, activeVehicles, inactiveVehicles, tripsToday, tripsThisMonth] = await Promise.all([
-    vehiclesApi.list({ page: 1, limit: 1 }),
-    vehiclesApi.list({ page: 1, limit: 1, isActive: true }),
-    vehiclesApi.list({ page: 1, limit: 1, isActive: false }),
-    tripsApi.list({ page: 1, limit: 1, fromDate: today, toDate: today }),
-    tripsApi.list({ page: 1, limit: 1, month }),
-  ]);
-
-  return {
-    fleet: {
-      totalVehicles: allVehicles.meta.total,
-      activeVehicles: activeVehicles.meta.total,
-      inactiveVehicles: inactiveVehicles.meta.total,
-    },
-    operations: {
-      tripsToday: tripsToday.meta.total,
-      tripsThisMonth: tripsThisMonth.meta.total,
-      vehiclesCurrentlyActive: activeVehicles.meta.total,
-    },
-  };
+  return apiClient.get<DashboardSnapshot>('/dashboard', {
+    params: { month: date.getMonth() + 1, year: date.getFullYear() },
+  });
 }

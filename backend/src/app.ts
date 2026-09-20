@@ -48,6 +48,11 @@ import firmRoutes from './modules/firms/firm.routes';
 import routeRoutes from './modules/routes/route.routes';
 import contractRoutes from './modules/contracts/contract.routes';
 import tripRoutes from './modules/trips/trip.routes';
+import expenseRoutes from './modules/expenses/expense.routes';
+import invoiceRoutes from './modules/invoices/invoice.routes';
+import paymentRoutes from './modules/payments/payment.routes';
+import vehicleDocumentRoutes from './modules/documents/vehicle-document.routes';
+import dashboardRoutes from './modules/dashboard/dashboard.routes';
 
 // API Routes will be registered here
 app.use('/api/v1/auth', authRoutes);
@@ -57,6 +62,11 @@ app.use('/api/v1/firms', firmRoutes);
 app.use('/api/v1/routes', routeRoutes);
 app.use('/api/v1/contracts', contractRoutes);
 app.use('/api/v1/trips', tripRoutes);
+app.use('/api/v1/expenses', expenseRoutes);
+app.use('/api/v1/invoices', invoiceRoutes);
+app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/documents', vehicleDocumentRoutes);
+app.use('/api/v1/dashboard', dashboardRoutes);
 
 // Handle 404
 app.use((req: Request, res: Response, next: NextFunction) => {
