@@ -45,12 +45,18 @@ import authRoutes from './modules/auth/auth.routes';
 import vehicleRoutes from './modules/vehicles/vehicle.routes';
 import driverRoutes from './modules/drivers/driver.routes';
 import firmRoutes from './modules/firms/firm.routes';
+import routeRoutes from './modules/routes/route.routes';
+import contractRoutes from './modules/contracts/contract.routes';
+import tripRoutes from './modules/trips/trip.routes';
 
 // API Routes will be registered here
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/vehicles', vehicleRoutes);
 app.use('/api/v1/drivers', driverRoutes);
 app.use('/api/v1/firms', firmRoutes);
+app.use('/api/v1/routes', routeRoutes);
+app.use('/api/v1/contracts', contractRoutes);
+app.use('/api/v1/trips', tripRoutes);
 
 // Handle 404
 app.use((req: Request, res: Response, next: NextFunction) => {

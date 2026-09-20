@@ -1,0 +1,5 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/common';
+
+interface PaginationProps { page: number; totalPages: number; total?: number; onPageChange: (page: number) => void }
+export function Pagination({ page, totalPages, total, onPageChange }: PaginationProps) { if (totalPages <= 1) return null; return <div className="pagination"><span>{total !== undefined ? `${total} records` : `Page ${page} of ${totalPages}`}</span><div><Button variant="secondary" icon={<ChevronLeft size={15} />} aria-label="Previous page" disabled={page <= 1} onClick={() => onPageChange(page - 1)} /><span className="page-number">{page} / {totalPages}</span><Button variant="secondary" icon={<ChevronRight size={15} />} aria-label="Next page" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)} /></div></div>; }

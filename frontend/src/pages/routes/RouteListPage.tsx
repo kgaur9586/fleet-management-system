@@ -1,0 +1,29 @@
+import { Eye, Filter, MoreHorizontal, Plus, RefreshCw, Search, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Alert, Badge, Button, Card, ConfirmationDialog, StatusBadge } from '@/components/common';
+import { DataTable, type DataTableColumn } from '@/components/tables';
+import { Select } from '@/components/forms';
+import { routesApi } from '@/services/routesApi';
+import { getApiErrorMessage } from '@/services/apiClient';
+import { notify } from '@/lib/toast';
+import type { Page, Route } from '@/types';
+
+const statusOptions = [{ value: '', label: 'All statuses' }, { value: 'true', label: 'Active' }, { value: 'false', label: 'Inactive' }];
+export function RouteListPage() {
+  const navigate = useNavigate(); const [result, setResult] = useState<Page<Route>>({ data: [], meta: { total: 0, page: 1, limit: 10, totalPages: 0 } }); const [search, setSearch] = useState(''); const [isActive, setIsActive] = useState('true'); const [page, setPage] = useState(1); const [loading, setLoading] = useState(true); const [error, setError] = useState(''); const [target, setTarget] = useState<Route | null>(null); const [changing, setChanging] = useState(false);
+  const load = useCallback(async () => { setLoading(true); setError(''); try { setResult(await routesApi.list({ page, limit: 10, search: search || undefined, isActive: isActive === '' ? undefined : isActive })); } catch (caught) { setError(getApiErrorMessage(caught)); } finally { setLoading(false); } }, [isActive, page, search]);
+  useEffect(() => { void load(); }, [load]);
+  async function changeStatus() { if (!target) return; setChanging(true); try { await routesApi.update(target._id, { isActive: !target.isActive }); notify.success(target.isActive ? 'Route deactivated.' : 'Route activated.'); setTarget(null); await load(); } catch (caught) { notify.error(caught); } finally { setChanging(false); } }
+  const columns = useMemo<DataTableColumn<Route>[]>(() => [
+    { key: 'name', header: 'Route', render: (route) => <div className="table-primary"><Link to={`/routes/${route._id}`}>{route.name}</Link><small>{route.routeCode || 'No route code'}</small></div> },
+    { key: 'pickup', header: 'Pickup', render: (route) => route.pickupLocation },
+    { key: 'drop', header: 'Drop', render: (route) => route.dropLocation },
+    { key: 'distance', header: 'Expected distance', render: (route) => route.expectedDistanceKm !== undefined ? `${route.expectedDistanceKm} km` : <span className="muted">Not set</span> },
+    { key: 'stops', header: 'Stops', render: (route) => route.intermediateStops?.length ? <Badge tone="info">{route.intermediateStops.length} stops</Badge> : <span className="muted">None</span> },
+    { key: 'status', header: 'Status', render: (route) => <StatusBadge status={route.isActive ? 'active' : 'inactive'} /> },
+    { key: 'actions', header: '', render: (route) => <div className="table-actions"><Button variant="ghost" icon={<Eye size={15} />} aria-label="View route" onClick={() => navigate(`/routes/${route._id}`)} /><Button variant="ghost" icon={<MoreHorizontal size={15} />} aria-label="Change route status" onClick={() => setTarget(route)} /></div> },
+  ], [navigate]);
+  const hasFilters = Boolean(search || isActive !== 'true'); const clearFilters = () => { setSearch(''); setIsActive('true'); setPage(1); };
+  return <div className="vehicle-page"><div className="page-heading"><div><p className="eyebrow">Network</p><h1>Routes</h1><p className="muted">Reusable pickup and drop definitions for daily operations.</p></div><Button icon={<Plus size={17} />} onClick={() => navigate('/routes/new')}>Add route</Button></div>{error && <Alert tone="error" title="Could not load routes" onDismiss={() => setError('')}>{error}</Alert>}<Card className="vehicle-list-card"><div className="vehicle-toolbar"><div className="search-field"><Search size={16} /><input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search route, code, pickup, or drop" aria-label="Search routes" />{search && <button className="clear-search" onClick={() => setSearch('')} aria-label="Clear search"><X size={14} /></button>}</div><div className="filter-controls driver-filter-controls"><Select label="Status" hideLabel options={statusOptions} value={isActive} onChange={(event) => { setIsActive(event.target.value); setPage(1); }} /><Button variant="secondary" icon={<RefreshCw size={15} />} onClick={() => void load()} aria-label="Refresh routes"><span className="button-label">Refresh</span></Button></div></div>{hasFilters && <div className="active-filter-row"><span>Filtered results</span><button type="button" onClick={clearFilters}>Clear all <X size={13} /></button></div>}<DataTable rows={result.data} columns={columns} getRowKey={(route) => route._id} loading={loading} empty={<div className="table-empty"><span className="empty-icon"><Filter size={20} /></span><strong>{hasFilters ? 'No routes match these filters' : 'No routes added yet'}</strong><p>{hasFilters ? 'Try clearing a filter or changing your search.' : 'Add a route to reuse its pickup and drop details in trips.'}</p><Button variant="secondary" onClick={() => hasFilters ? clearFilters() : navigate('/routes/new')}>{hasFilters ? 'Clear filters' : 'Add route'}</Button></div>} page={result.meta.page} totalPages={result.meta.totalPages} total={result.meta.total} onPageChange={setPage} /></Card><ConfirmationDialog open={Boolean(target)} title={`${target?.isActive ? 'Deactivate' : 'Activate'} route?`} message={`${target?.name || 'This route'} will be ${target?.isActive ? 'marked inactive' : 'made available for new trip entries'}. Historical trips remain unchanged.`} confirmLabel={target?.isActive ? 'Deactivate' : 'Activate'} loading={changing} onConfirm={() => void changeStatus()} onCancel={() => setTarget(null)} /></div>;
+}

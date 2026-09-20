@@ -9,11 +9,13 @@ interface QueryOptions {
   isActive?: boolean;
 }
 
+const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 export class RouteService {
   static async create(data: Partial<IRoute>) {
     if (data.name) {
       const existing = await RouteModel.findOne({ 
-        name: { $regex: new RegExp(`^${data.name}$`, 'i') }, 
+        name: { $regex: new RegExp(`^${escapeRegex(data.name)}$`, 'i') }, 
         isDeleted: false 
       });
       if (existing) {
@@ -23,7 +25,7 @@ export class RouteService {
 
     if (data.routeCode) {
       const existingCode = await RouteModel.findOne({
-        routeCode: data.routeCode,
+        routeCode: { $regex: new RegExp(`^${escapeRegex(data.routeCode)}$`, 'i') },
         isDeleted: false
       });
       if (existingCode) {
@@ -42,7 +44,7 @@ export class RouteService {
 
     if (data.name && data.name !== routeInfo.name) {
       const existing = await RouteModel.findOne({
-        name: { $regex: new RegExp(`^${data.name}$`, 'i') },
+        name: { $regex: new RegExp(`^${escapeRegex(data.name)}$`, 'i') },
         _id: { $ne: id },
         isDeleted: false,
       });
@@ -54,7 +56,7 @@ export class RouteService {
 
     if (data.routeCode && data.routeCode !== routeInfo.routeCode) {
       const existingCode = await RouteModel.findOne({
-        routeCode: data.routeCode,
+        routeCode: { $regex: new RegExp(`^${escapeRegex(data.routeCode)}$`, 'i') },
         _id: { $ne: id },
         isDeleted: false
       });
@@ -93,11 +95,14 @@ export class RouteService {
     const query: FilterQuery<IRoute> = { isDeleted: false };
 
     if (search) {
+      const searchRegex = { $regex: escapeRegex(search), $options: 'i' };
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { routeCode: { $regex: search, $options: 'i' } },
-        { pickupLocation: { $regex: search, $options: 'i' } },
-        { dropLocation: { $regex: search, $options: 'i' } },
+        { name: searchRegex },
+        { routeCode: searchRegex },
+        { pickupLocation: searchRegex },
+        { dropLocation: searchRegex },
+        { intermediateStops: searchRegex },
+        { notes: searchRegex },
       ];
     }
 

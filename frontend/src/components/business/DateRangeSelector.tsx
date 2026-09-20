@@ -1,0 +1,4 @@
+import { DateInput } from '@/components/forms/DateInput';
+
+interface DateRangeSelectorProps { fromDate?: string; toDate?: string; onFromDateChange: (value: string) => void; onToDateChange: (value: string) => void; fromError?: string; toError?: string; disabled?: boolean }
+export function DateRangeSelector({ fromDate, toDate, onFromDateChange, onToDateChange, fromError, toError, disabled }: DateRangeSelectorProps) { return <div className="date-range-selector"><DateInput id="from-date" label="From date" value={fromDate || ''} onChange={(event) => onFromDateChange(event.target.value)} error={fromError} disabled={disabled} /><DateInput id="to-date" label="To date" value={toDate || ''} onChange={(event) => onToDateChange(event.target.value)} error={toError} disabled={disabled} /></div>; }

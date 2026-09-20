@@ -44,7 +44,12 @@ export class RouteController {
 
   static async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await RouteService.list(req.query as any);
+      const result = await RouteService.list({
+        page: req.query.page ? Number(req.query.page) : undefined,
+        limit: req.query.limit ? Number(req.query.limit) : undefined,
+        search: req.query.search as string | undefined,
+        isActive: req.query.isActive === undefined ? undefined : req.query.isActive === 'true',
+      });
       sendSuccess(res, 200, 'Routes retrieved successfully', result);
     } catch (error) {
       next(error);
