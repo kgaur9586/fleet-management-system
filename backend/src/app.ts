@@ -20,6 +20,7 @@ const apiLimiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.',
 });
 app.use('/api', apiLimiter);
+app.set('trust proxy', 1);
 
 // CORS middleware
 app.use(
@@ -42,6 +43,7 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 import authRoutes from './modules/auth/auth.routes';
+import companyRoutes from './modules/companies/company.routes';
 import vehicleRoutes from './modules/vehicles/vehicle.routes';
 import driverRoutes from './modules/drivers/driver.routes';
 import firmRoutes from './modules/firms/firm.routes';
@@ -56,6 +58,7 @@ import dashboardRoutes from './modules/dashboard/dashboard.routes';
 
 // API Routes will be registered here
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/companies', companyRoutes);
 app.use('/api/v1/vehicles', vehicleRoutes);
 app.use('/api/v1/drivers', driverRoutes);
 app.use('/api/v1/firms', firmRoutes);

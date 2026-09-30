@@ -11,6 +11,7 @@ export const billingKeys = {
   preview: (id: string) => [...billingKeys.all, 'preview', id] as const,
   paymentSummary: (month: number, year: number) => [...billingKeys.all, 'payments', month, year] as const,
   overview: (month: number, year: number) => [...billingKeys.all, 'overview', month, year] as const,
+  auditHistory: (id: string) => [...billingKeys.all, 'history', id] as const,
 };
 
 export const useActiveFirmsQuery = () => useQuery({ queryKey: ['firms', { active: true }], queryFn: () => firmsApi.list({ page: 1, limit: 100, isActive: true }) });
@@ -19,6 +20,7 @@ export const useActiveVehiclesQuery = () => useQuery({ queryKey: ['vehicles', { 
 export const useInvoiceHistoryQuery = (filters: Record<string, unknown>) => useQuery({ queryKey: billingKeys.invoices(filters), queryFn: () => billingApi.listInvoices(filters) });
 export const useInvoiceDetailsQuery = (id: string) => useQuery({ queryKey: billingKeys.invoice(id), queryFn: () => billingApi.getInvoice(id), enabled: Boolean(id) });
 export const useBillingPreviewQuery = (id: string | null) => useQuery({ queryKey: billingKeys.preview(id ?? ''), queryFn: () => billingApi.getInvoice(id as string), enabled: Boolean(id) });
+export const useInvoiceAuditHistoryQuery = (id: string) => useQuery({ queryKey: billingKeys.auditHistory(id), queryFn: () => billingApi.getInvoiceHistory(id), enabled: Boolean(id) });
 
 export const useBillingOverviewQueries = (month: number, year: number) => {
   const draft = useQuery({ queryKey: billingKeys.invoices({ page: 1, limit: 1, status: 'draft', month, year }), queryFn: () => billingApi.listInvoices({ page: 1, limit: 1, status: 'draft', month, year }) });
@@ -47,3 +49,7 @@ export const useFinalizeInvoiceMutation = () => {
   return useMutation({ mutationFn: ({ id, notes }: { id: string; notes?: string }) => billingApi.finalizeInvoice(id, notes), onSuccess: (invoice: Invoice) => { queryClient.setQueryData(billingKeys.invoice(invoice._id), invoice); queryClient.setQueryData(billingKeys.preview(invoice._id), invoice); void invalidateBilling(queryClient); } });
 };
 export const useInvoicePdfMutation = () => useMutation({ mutationFn: (id: string) => billingApi.downloadInvoicePdf(id) });
+export const useReopenInvoiceMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({ mutationFn: ({ id, reason }: { id: string; reason: string }) => billingApi.reopenInvoice(id, reason), onSuccess: (invoice: Invoice) => { queryClient.setQueryData(billingKeys.invoice(invoice._id), invoice); queryClient.setQueryData(billingKeys.preview(invoice._id), invoice); void invalidateBilling(queryClient); } });
+};

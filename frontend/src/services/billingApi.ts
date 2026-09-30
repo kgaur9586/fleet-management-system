@@ -41,14 +41,34 @@ export interface InvoiceLineItem {
   snapshot: InvoiceSnapshot;
 }
 
+export interface InvoiceReopenEntry {
+  reopenedAt: string;
+  reason: string;
+  previousStatus: InvoiceStatus;
+  previousInvoiceNumber?: string;
+}
+
+export interface InvoiceAuditEntry {
+  _id: string;
+  action: string;
+  reason?: string;
+  timestamp: string;
+  userId?: { name?: string; email?: string } | string;
+}
+
 export interface Invoice {
   _id: string;
   invoiceNumber?: string;
+  bookNumber?: string;
   firmId: string | { _id: string; name: string; billingName?: string };
   vehicleId: string | { _id: string; registrationNumber: string; capacity: number };
   month: number;
   year: number;
   status: InvoiceStatus;
+  paymentStatus?: 'unpaid' | 'partially_paid' | 'paid';
+  totalPaid?: number;
+  outstandingAmount?: number;
+  reopenHistory?: InvoiceReopenEntry[];
   generatedAt: string;
   approvedAt?: string;
   finalizedAt?: string;
@@ -66,9 +86,11 @@ export interface PaymentSummary {
 export const billingApi = {
   listInvoices: (query: Record<string, unknown> = {}) => apiClient.get<Page<Invoice>>(`/invoices?${toQueryString(query)}`),
   getInvoice: (id: string) => apiClient.get<Invoice>(`/invoices/${id}`),
-  generateInvoice: (payload: { firmId: string; vehicleId: string; month: number; year: number; notes?: string }) => apiClient.post<Invoice>('/invoices/generate', payload),
+  generateInvoice: (payload: { firmId: string; vehicleId: string; month: number; year: number; notes?: string; bookNumber?: string }) => apiClient.post<Invoice>('/invoices/generate', payload),
   approveInvoice: (id: string, notes?: string) => apiClient.patch<Invoice>(`/invoices/${id}/approve`, { notes }),
   finalizeInvoice: (id: string, notes?: string) => apiClient.patch<Invoice>(`/invoices/${id}/finalize`, { notes }),
+  reopenInvoice: (id: string, reason: string) => apiClient.patch<Invoice>(`/invoices/${id}/reopen`, { reason }),
+  getInvoiceHistory: (id: string) => apiClient.get<InvoiceAuditEntry[]>(`/invoices/${id}/history`),
   downloadInvoicePdf: (id: string) => apiClient.download(`/invoices/${id}/pdf`),
   getPaymentSummary: (query: Record<string, unknown> = {}) => apiClient.get<PaymentSummary>(`/payments/summary?${toQueryString(query)}`),
 };

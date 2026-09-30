@@ -104,6 +104,24 @@ export const apiClient = {
   put: <T>(url: string, data?: unknown, config?: AxiosRequestConfig) => request<T>({ ...config, method: 'PUT', url, data }),
   patch: <T>(url: string, data?: unknown, config?: AxiosRequestConfig) => request<T>({ ...config, method: 'PATCH', url, data }),
   delete: <T = undefined>(url: string, config?: AxiosRequestConfig) => request<T>({ ...config, method: 'DELETE', url }),
+  // Overrides the instance-level JSON header so axios can set the multipart boundary itself.
+  upload: <T>(url: string, form: FormData) => request<T>({ method: 'POST', url, data: form, headers: { 'Content-Type': 'multipart/form-data' } }),
+  downloadFile: async (url: string) => {
+    try {
+      const response = await client.get<Blob>(url, { responseType: 'blob' });
+      if (!response.data || response.data.size === 0) throw new ApiRequestError('The backend returned an empty file.', response.status);
+      const disposition = String(response.headers['content-disposition'] || '');
+      const filename = /filename="?([^";]+)"?/.exec(disposition)?.[1];
+      return { blob: response.data, filename };
+    } catch (error) {
+      if (axios.isAxiosError<ApiErrorShape>(error)) {
+        if (!error.response) throw new ApiRequestError('Unable to reach the backend. Check your connection.');
+        const message = error.response.status === 401 ? 'Your session has expired. Please sign in again.' : error.response.status === 404 ? 'The requested file was not found.' : 'File download failed';
+        throw new ApiRequestError(message, error.response.status);
+      }
+      throw error;
+    }
+  },
 };
 
 export default apiClient;

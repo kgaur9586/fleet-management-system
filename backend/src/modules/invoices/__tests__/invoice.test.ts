@@ -71,11 +71,12 @@ const rules = (fuelRatePerLitre: number) => ({
 });
 
 const createFirmAndVehicleDriverContract = async () => {
-  const firm = await FirmModel.create({ name: 'Billing Test Firm', billingName: 'Billing Test Firm' });
+  const firm = await FirmModel.create({ name: 'Billing Test Firm', billingName: 'Billing Test Firm', billPrefix: 'BTF' });
   const vehicle = await VehicleModel.create({
     registrationNumber: 'KA01AB1234',
     vehicleType: 'truck',
     capacity: 29000,
+    vehicleNumberPerFirm: 1,
     firmId: firm._id,
     isActive: true,
   });
@@ -213,6 +214,7 @@ describe('Monthly invoice lifecycle and snapshot generation', () => {
 
     expect(finalize.status).toBe(200);
     expect(finalize.body.data.status).toBe('finalized');
+    expect(finalize.body.data.invoiceNumber).toBe('BTF/03/25-26/1');
     expect(finalize.body.data.lineItems[0].snapshot.totalAmount).toBeDefined();
 
     const draftPdfResponse = await request(app)
@@ -227,6 +229,60 @@ describe('Monthly invoice lifecycle and snapshot generation', () => {
     expect(stored?.status).toBe('finalized');
     expect(stored?.lineItems[0].snapshot.totalAmount).toBeDefined();
     expect(String(stored?.lineItems[0].tripId)).toBe(tripId);
+  });
+
+  it('reopens a finalized invoice with a reason and records an audit trail', async () => {
+    const { firm, vehicle, driver, contract, contractVersion } = await createFirmAndVehicleDriverContract();
+    await TripModel.create({
+      tripDate: new Date('2026-03-02T00:00:00.000Z'),
+      vehicleId: vehicle._id,
+      driverId: driver._id,
+      firmId: firm._id,
+      contractId: contract._id,
+      contractVersionId: contractVersion._id,
+      pickupLocation: 'Warehouse',
+      dropLocation: 'Customer',
+      totalKm: 150,
+      operationalStatus: 'completed',
+      toll: { amount: 300 },
+    });
+
+    const firmId = String((firm as any)._id);
+    const vehicleId = String((vehicle as any)._id);
+
+    const generated = await request(app)
+      .post('/api/v1/invoices/generate')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ firmId, vehicleId, month: 3, year: 2026 });
+    const invoiceId = generated.body.data._id;
+
+    await request(app).patch(`/api/v1/invoices/${invoiceId}/approve`).set('Authorization', `Bearer ${token}`).send({});
+    await request(app).patch(`/api/v1/invoices/${invoiceId}/finalize`).set('Authorization', `Bearer ${token}`).send({});
+
+    const missingReason = await request(app)
+      .patch(`/api/v1/invoices/${invoiceId}/reopen`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ reason: 'no' });
+    expect(missingReason.status).toBe(400);
+
+    const reopened = await request(app)
+      .patch(`/api/v1/invoices/${invoiceId}/reopen`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ reason: 'Toll amount was mis-keyed for 12 March' });
+
+    expect(reopened.status).toBe(200);
+    expect(reopened.body.data.status).toBe('draft');
+    expect(reopened.body.data.reopenHistory).toHaveLength(1);
+    expect(reopened.body.data.reopenHistory[0].reason).toContain('mis-keyed');
+    // The issued bill number is retained so the reopened bill keeps its identity.
+    expect(reopened.body.data.invoiceNumber).toBe('BTF/03/25-26/1');
+
+    const history = await request(app)
+      .get(`/api/v1/invoices/${invoiceId}/history`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(history.status).toBe(200);
+    const actions = history.body.data.map((entry: { action: string }) => entry.action);
+    expect(actions).toEqual(expect.arrayContaining(['invoice.generated', 'invoice.approved', 'invoice.finalized', 'invoice.reopened']));
   });
 
   it('rejects PDF downloads until the invoice is finalized', async () => {

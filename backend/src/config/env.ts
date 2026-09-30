@@ -11,6 +11,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(10),
   JWT_EXPIRES_IN: z.string().default('1d'),
   CORS_ORIGIN: z.string().default('*'),
+  SEED_SECRET: z.string().min(16).optional(),
 });
 
 const _env = envSchema.safeParse(process.env);
