@@ -14,7 +14,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://fleet-management-system-ilai.onrender.com/',
         changeOrigin: true,
       },
     },
