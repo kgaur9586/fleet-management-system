@@ -2,9 +2,16 @@ import type { PaginatedData } from './api';
 
 export type DecimalValue = number | string | { $numberDecimal?: string };
 
+export interface Company {
+  _id: string; name: string; legalName?: string; address?: { street?: string; city?: string; state?: string; pinCode?: string };
+  contactDetails?: { name?: string; email?: string; mobile?: string }; gstNumber?: string; isActive: boolean;
+  notes?: string; isDeleted: boolean; createdAt: string; updatedAt: string;
+}
+export type CompanyPayload = Omit<Partial<Company>, '_id' | 'isDeleted' | 'createdAt' | 'updatedAt'> & Pick<Company, 'name'>;
+
 export interface Vehicle {
   _id: string; registrationNumber: string; vehicleType: string; capacity: number;
-  make?: string; vehicleModel?: string; firmId?: string | { _id: string; name: string }; status: 'available' | 'on_trip' | 'maintenance';
+  make?: string; vehicleModel?: string; firmId?: string | { _id: string; name: string }; vehicleNumberPerFirm?: number; status: 'available' | 'on_trip' | 'maintenance';
   isActive: boolean; isDeleted: boolean; metadata?: Record<string, unknown>; createdAt: string; updatedAt: string;
 }
 export type VehiclePayload = Omit<Partial<Vehicle>, '_id' | 'isDeleted' | 'createdAt' | 'updatedAt'> & Pick<Vehicle, 'registrationNumber' | 'vehicleType' | 'capacity'>;
@@ -17,8 +24,10 @@ export interface Driver {
 export interface DriverPayload { name: string; mobile: string; employeeId?: string; joiningDate?: string; dailyWage: number; isActive?: boolean; notes?: string; history?: DriverHistoryEvent[] }
 
 export interface Firm {
-  _id: string; name: string; billingName?: string; address?: { street?: string; city?: string; state?: string; pinCode?: string };
-  contactDetails?: { name?: string; email?: string; mobile?: string }; gstNumber?: string; isActive: boolean;
+  _id: string; name: string; companyId?: string; billingName?: string; billPrefix?: string; address?: { street?: string; city?: string; state?: string; pinCode?: string };
+  contactDetails?: { name?: string; email?: string; mobile?: string };
+  bankDetails?: { accountName?: string; accountNumber?: string; ifscCode?: string; bankName?: string; branchName?: string };
+  gstNumber?: string; isActive: boolean;
   billingConfiguration?: Record<string, unknown>; notes?: string; isDeleted: boolean; createdAt: string; updatedAt: string;
 }
 export type FirmPayload = Omit<Partial<Firm>, '_id' | 'isDeleted' | 'createdAt' | 'updatedAt'> & Pick<Firm, 'name'>;

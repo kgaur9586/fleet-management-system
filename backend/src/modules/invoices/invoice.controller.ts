@@ -53,6 +53,24 @@ export class InvoiceController {
     }
   }
 
+  static async reopen(req: Request, res: Response, next: NextFunction) {
+    try {
+      const invoice = await InvoiceService.reopen(req.params.id as string, req.body.reason, req.user?.id);
+      sendSuccess(res, 200, 'Invoice reopened successfully', invoice);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async history(req: Request, res: Response, next: NextFunction) {
+    try {
+      const entries = await InvoiceService.history(req.params.id as string);
+      sendSuccess(res, 200, 'Invoice history retrieved successfully', entries);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async finalize(req: Request, res: Response, next: NextFunction) {
     try {
       const invoice = await InvoiceService.finalize(req.params.id as string, { notes: req.body.notes }, req.user?.id);

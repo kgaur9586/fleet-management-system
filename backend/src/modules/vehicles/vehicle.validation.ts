@@ -18,6 +18,7 @@ export const createVehicleSchema = z.object({
     make: z.string().optional(),
     vehicleModel: z.string().optional(),
     firmId: objectIdSchema.optional(),
+    vehicleNumberPerFirm: z.number().int().min(1).optional(),
     status: z.enum(['available', 'on_trip', 'maintenance']).optional(),
     metadata: z.record(z.string(), z.any()).optional(),
   }),
@@ -40,6 +41,7 @@ export const updateVehicleSchema = z.object({
     vehicleModel: z.string().optional(),
     isActive: z.boolean().optional(),
     firmId: objectIdSchema.nullable().optional(), // Allow removing firm association
+    vehicleNumberPerFirm: z.number().int().min(1).optional(),
     status: z.enum(['available', 'on_trip', 'maintenance']).optional(),
     metadata: z.record(z.string(), z.any()).optional(),
   }),

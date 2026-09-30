@@ -1,0 +1,945 @@
+﻿node.exe : ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing 
+hybrid module kind (Node16/18/Next) is only supported in "isolatedModules: 
+true". Please set "isolatedModules: true" in your tsconfig.json. To disable 
+this message, you can set "diagnostics.ignoreCodes" to include 151002 in your 
+ts-jest config. See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (ts-jest[config]...ons/diagnostics 
+   :String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+  console.error
+    Γùç injected env (5) from .env
+
+    [0m [90m 3 |[39m
+     [90m 4 |[39m [90m// Load env variables[39m
+    [31m[1m>[22m[39m[90m 5 |[39m dotenv[33m.[39mconfig()[33m;[39m
+     [90m   |[39m        [31m[1m^[22m[39m
+     [90m 6 |[39m
+     [90m 7 |[39m [36mconst[39m envSchema [33m=[39m z[33m.[39mobject({
+     [90m 8 |[39m   [33mNODE_ENV[39m[33m:[39m z[33m.[39m[36menum[39m([[32m'development'[39m[33m,[39m [32m'production'[39m[33m,[39m [32m'test'[39m])[33m.[39m[36mdefault[39m([32m'development'[39m)[33m,[39m[0m
+
+      at z (node_modules/dotenv/dist/index.cjs:7:300)
+      at Object.ee [as configDotenv] (node_modules/dotenv/dist/index.cjs:7:1145)
+      at Object.te [as config] (node_modules/dotenv/dist/index.cjs:7:1253)
+      at Object.<anonymous> (src/config/env.ts:5:8)
+      at Object.<anonymous> (src/app.ts:5:1)
+      at Object.<anonymous> (src/modules/routes/__tests__/route.test.ts:4:1)
+
+  console.error
+    Γùç injected env (5) from .env
+
+    [0m [90m 3 |[39m
+     [90m 4 |[39m [90m// Load env variables[39m
+    [31m[1m>[22m[39m[90m 5 |[39m dotenv[33m.[39mconfig()[33m;[39m
+     [90m   |[39m        [31m[1m^[22m[39m
+     [90m 6 |[39m
+     [90m 7 |[39m [36mconst[39m envSchema [33m=[39m z[33m.[39mobject({
+     [90m 8 |[39m   [33mNODE_ENV[39m[33m:[39m z[33m.[39m[36menum[39m([[32m'development'[39m[33m,[39m [32m'production'[39m[33m,[39m [32m'test'[39m])[33m.[39m[36mdefault[39m([32m'development'[39m)[33m,[39m[0m
+
+      at z (node_modules/dotenv/dist/index.cjs:7:300)
+      at Object.ee [as configDotenv] (node_modules/dotenv/dist/index.cjs:7:1145)
+      at Object.te [as config] (node_modules/dotenv/dist/index.cjs:7:1253)
+      at Object.<anonymous> (src/config/env.ts:5:8)
+      at Object.<anonymous> (src/app.ts:5:1)
+      at Object.<anonymous> (src/modules/payments/__tests__/payment.test.ts:4:1)
+
+  console.error
+    Γùç injected env (5) from .env
+
+    [0m [90m 3 |[39m
+     [90m 4 |[39m [90m// Load env variables[39m
+    [31m[1m>[22m[39m[90m 5 |[39m dotenv[33m.[39mconfig()[33m;[39m
+     [90m   |[39m        [31m[1m^[22m[39m
+     [90m 6 |[39m
+     [90m 7 |[39m [36mconst[39m envSchema [33m=[39m z[33m.[39mobject({
+     [90m 8 |[39m   [33mNODE_ENV[39m[33m:[39m z[33m.[39m[36menum[39m([[32m'development'[39m[33m,[39m [32m'production'[39m[33m,[39m [32m'test'[39m])[33m.[39m[36mdefault[39m([32m'development'[39m)[33m,[39m[0m
+
+      at z (node_modules/dotenv/dist/index.cjs:7:300)
+      at Object.ee [as configDotenv] (node_modules/dotenv/dist/index.cjs:7:1145)
+      at Object.te [as config] (node_modules/dotenv/dist/index.cjs:7:1253)
+      at Object.<anonymous> (src/config/env.ts:5:8)
+      at Object.<anonymous> (src/app.ts:5:1)
+      at Object.<anonymous> (src/modules/trips/__tests__/trip.test.ts:4:1)
+
+  console.error
+    Γùç injected env (5) from .env
+
+    [0m [90m 3 |[39m
+     [90m 4 |[39m [90m// Load env variables[39m
+    [31m[1m>[22m[39m[90m 5 |[39m dotenv[33m.[39mconfig()[33m;[39m
+     [90m   |[39m        [31m[1m^[22m[39m
+     [90m 6 |[39m
+     [90m 7 |[39m [36mconst[39m envSchema [33m=[39m z[33m.[39mobject({
+     [90m 8 |[39m   [33mNODE_ENV[39m[33m:[39m z[33m.[39m[36menum[39m([[32m'development'[39m[33m,[39m [32m'production'[39m[33m,[39m [32m'test'[39m])[33m.[39m[36mdefault[39m([32m'development'[39m)[33m,[39m[0m
+
+      at z (node_modules/dotenv/dist/index.cjs:7:300)
+      at Object.ee [as configDotenv] (node_modules/dotenv/dist/index.cjs:7:1145)
+      at Object.te [as config] (node_modules/dotenv/dist/index.cjs:7:1253)
+      at Object.<anonymous> (src/config/env.ts:5:8)
+      at Object.<anonymous> (src/app.ts:5:1)
+      at Object.<anonymous> (src/modules/documents/__tests__/vehicle-document.test.ts:6:1)
+
+  console.error
+    Γùç injected env (5) from .env
+
+    [0m [90m 3 |[39m
+     [90m 4 |[39m [90m// Load env variables[39m
+    [31m[1m>[22m[39m[90m 5 |[39m dotenv[33m.[39mconfig()[33m;[39m
+     [90m   |[39m        [31m[1m^[22m[39m
+     [90m 6 |[39m
+     [90m 7 |[39m [36mconst[39m envSchema [33m=[39m z[33m.[39mobject({
+     [90m 8 |[39m   [33mNODE_ENV[39m[33m:[39m z[33m.[39m[36menum[39m([[32m'development'[39m[33m,[39m [32m'production'[39m[33m,[39m [32m'test'[39m])[33m.[39m[36mdefault[39m([32m'development'[39m)[33m,[39m[0m
+
+      at z (node_modules/dotenv/dist/index.cjs:7:300)
+      at Object.ee [as configDotenv] (node_modules/dotenv/dist/index.cjs:7:1145)
+      at Object.te [as config] (node_modules/dotenv/dist/index.cjs:7:1253)
+      at Object.<anonymous> (src/config/env.ts:5:8)
+      at Object.<anonymous> (src/app.ts:5:1)
+      at Object.<anonymous> (src/modules/expenses/__tests__/expense.test.ts:4:1)
+
+  console.error
+    Γùç injected env (5) from .env
+
+    [0m [90m 3 |[39m
+     [90m 4 |[39m [90m// Load env variables[39m
+    [31m[1m>[22m[39m[90m 5 |[39m dotenv[33m.[39mconfig()[33m;[39m
+     [90m   |[39m        [31m[1m^[22m[39m
+     [90m 6 |[39m
+     [90m 7 |[39m [36mconst[39m envSchema [33m=[39m z[33m.[39mobject({
+     [90m 8 |[39m   [33mNODE_ENV[39m[33m:[39m z[33m.[39m[36menum[39m([[32m'development'[39m[33m,[39m [32m'production'[39m[33m,[39m [32m'test'[39m])[33m.[39m[36mdefault[39m([32m'development'[39m)[33m,[39m[0m
+
+      at z (node_modules/dotenv/dist/index.cjs:7:300)
+      at Object.ee [as configDotenv] (node_modules/dotenv/dist/index.cjs:7:1145)
+      at Object.te [as config] (node_modules/dotenv/dist/index.cjs:7:1253)
+      at Object.<anonymous> (src/config/env.ts:5:8)
+      at Object.<anonymous> (src/app.ts:5:1)
+      at Object.<anonymous> (src/modules/dashboard/__tests__/dashboard.test.ts:4:1)
+
+  console.error
+    Γùç injected env (5) from .env
+
+    [0m [90m 3 |[39m
+     [90m 4 |[39m [90m// Load env variables[39m
+    [31m[1m>[22m[39m[90m 5 |[39m dotenv[33m.[39mconfig()[33m;[39m
+     [90m   |[39m        [31m[1m^[22m[39m
+     [90m 6 |[39m
+     [90m 7 |[39m [36mconst[39m envSchema [33m=[39m z[33m.[39mobject({
+     [90m 8 |[39m   [33mNODE_ENV[39m[33m:[39m z[33m.[39m[36menum[39m([[32m'development'[39m[33m,[39m [32m'production'[39m[33m,[39m [32m'test'[39m])[33m.[39m[36mdefault[39m([32m'development'[39m)[33m,[39m[0m
+
+      at z (node_modules/dotenv/dist/index.cjs:7:300)
+      at Object.ee [as configDotenv] (node_modules/dotenv/dist/index.cjs:7:1145)
+      at Object.te [as config] (node_modules/dotenv/dist/index.cjs:7:1253)
+      at Object.<anonymous> (src/config/env.ts:5:8)
+      at Object.<anonymous> (src/app.ts:5:1)
+      at Object.<anonymous> (src/modules/invoices/__tests__/invoice.test.ts:4:1)
+
+  console.error
+    Γùç injected env (5) from .env
+
+    [0m [90m 3 |[39m
+     [90m 4 |[39m [90m// Load env variables[39m
+    [31m[1m>[22m[39m[90m 5 |[39m dotenv[33m.[39mconfig()[33m;[39m
+     [90m   |[39m        [31m[1m^[22m[39m
+     [90m 6 |[39m
+     [90m 7 |[39m [36mconst[39m envSchema [33m=[39m z[33m.[39mobject({
+     [90m 8 |[39m   [33mNODE_ENV[39m[33m:[39m z[33m.[39m[36menum[39m([[32m'development'[39m[33m,[39m [32m'production'[39m[33m,[39m [32m'test'[39m])[33m.[39m[36mdefault[39m([32m'development'[39m)[33m,[39m[0m
+
+      at z (node_modules/dotenv/dist/index.cjs:7:300)
+      at Object.ee [as configDotenv] (node_modules/dotenv/dist/index.cjs:7:1145)
+      at Object.te [as config] (node_modules/dotenv/dist/index.cjs:7:1253)
+      at Object.<anonymous> (src/config/env.ts:5:8)
+      at Object.<anonymous> (src/app.ts:5:1)
+      at Object.<anonymous> (src/modules/vehicles/__tests__/vehicle.test.ts:4:1)
+
+  console.error
+    Γùç injected env (5) from .env
+
+    [0m [90m 3 |[39m
+     [90m 4 |[39m [90m// Load env variables[39m
+    [31m[1m>[22m[39m[90m 5 |[39m dotenv[33m.[39mconfig()[33m;[39m
+     [90m   |[39m        [31m[1m^[22m[39m
+     [90m 6 |[39m
+     [90m 7 |[39m [36mconst[39m envSchema [33m=[39m z[33m.[39mobject({
+     [90m 8 |[39m   [33mNODE_ENV[39m[33m:[39m z[33m.[39m[36menum[39m([[32m'development'[39m[33m,[39m [32m'production'[39m[33m,[39m [32m'test'[39m])[33m.[39m[36mdefault[39m([32m'development'[39m)[33m,[39m[0m
+
+      at z (node_modules/dotenv/dist/index.cjs:7:300)
+      at Object.ee [as configDotenv] (node_modules/dotenv/dist/index.cjs:7:1145)
+      at Object.te [as config] (node_modules/dotenv/dist/index.cjs:7:1253)
+      at Object.<anonymous> (src/config/env.ts:5:8)
+      at Object.<anonymous> (src/app.ts:5:1)
+      at Object.<anonymous> (src/modules/auth/__tests__/auth.test.ts:4:1)
+
+  console.error
+    Γùç injected env (5) from .env
+
+    [0m [90m 3 |[39m
+     [90m 4 |[39m [90m// Load env variables[39m
+    [31m[1m>[22m[39m[90m 5 |[39m dotenv[33m.[39mconfig()[33m;[39m
+     [90m   |[39m        [31m[1m^[22m[39m
+     [90m 6 |[39m
+     [90m 7 |[39m [36mconst[39m envSchema [33m=[39m z[33m.[39mobject({
+     [90m 8 |[39m   [33mNODE_ENV[39m[33m:[39m z[33m.[39m[36menum[39m([[32m'development'[39m[33m,[39m [32m'production'[39m[33m,[39m [32m'test'[39m])[33m.[39m[36mdefault[39m([32m'development'[39m)[33m,[39m[0m
+
+      at z (node_modules/dotenv/dist/index.cjs:7:300)
+      at Object.ee [as configDotenv] (node_modules/dotenv/dist/index.cjs:7:1145)
+      at Object.te [as config] (node_modules/dotenv/dist/index.cjs:7:1253)
+      at Object.<anonymous> (src/config/env.ts:5:8)
+      at Object.<anonymous> (src/app.ts:5:1)
+      at Object.<anonymous> (src/modules/firms/__tests__/firm.test.ts:4:1)
+
+  console.error
+    Γùç injected env (5) from .env
+
+    [0m [90m 3 |[39m
+     [90m 4 |[39m [90m// Load env variables[39m
+    [31m[1m>[22m[39m[90m 5 |[39m dotenv[33m.[39mconfig()[33m;[39m
+     [90m   |[39m        [31m[1m^[22m[39m
+     [90m 6 |[39m
+     [90m 7 |[39m [36mconst[39m envSchema [33m=[39m z[33m.[39mobject({
+     [90m 8 |[39m   [33mNODE_ENV[39m[33m:[39m z[33m.[39m[36menum[39m([[32m'development'[39m[33m,[39m [32m'production'[39m[33m,[39m [32m'test'[39m])[33m.[39m[36mdefault[39m([32m'development'[39m)[33m,[39m[0m
+
+      at z (node_modules/dotenv/dist/index.cjs:7:300)
+      at Object.ee [as configDotenv] (node_modules/dotenv/dist/index.cjs:7:1145)
+      at Object.te [as config] (node_modules/dotenv/dist/index.cjs:7:1253)
+      at Object.<anonymous> (src/config/env.ts:5:8)
+      at Object.<anonymous> (src/app.ts:5:1)
+      at Object.<anonymous> (src/modules/drivers/__tests__/driver.test.ts:4:1)
+
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+[32m2026-09-30 12:20:04:204 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:04 +0000] "POST /api/v1/auth/login HTTP/1.1" 200 364 "-" "-" - 389.073 ms[39m
+[32m2026-09-30 12:20:04:204 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:04 +0000] "POST /api/v1/auth/login HTTP/1.1" 200 370 "-" "-" - 548.993 ms[39m
+[32m2026-09-30 12:20:04:204 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:04 +0000] "POST /api/v1/auth/login HTTP/1.1" 200 362 "-" "-" - 581.662 ms[39m
+[32m2026-09-30 12:20:04:204 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:04 +0000] "POST /api/v1/auth/login HTTP/1.1" 200 368 "-" "-" - 616.700 ms[39m
+[32m2026-09-30 12:20:04:204 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:04 +0000] "POST /api/v1/auth/login HTTP/1.1" 200 363 "-" "-" - 686.887 ms[39m
+[32m2026-09-30 12:20:04:204 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:04 +0000] "POST /api/v1/auth/login HTTP/1.1" 200 362 "-" "-" - 720.681 ms[39m
+[32m2026-09-30 12:20:04:204 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:04 +0000] "POST /api/v1/auth/login HTTP/1.1" 200 366 "-" "-" - 704.860 ms[39m
+[32m2026-09-30 12:20:04:204 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:04 +0000] "POST /api/v1/auth/login HTTP/1.1" 200 365 "-" "-" - 716.948 ms[39m
+[32m2026-09-30 12:20:04:204 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:04 +0000] "POST /api/v1/auth/login HTTP/1.1" 200 368 "-" "-" - 757.154 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/auth/login HTTP/1.1" 200 357 "-" "-" - 847.338 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/drivers HTTP/1.1" 201 366 "-" "-" - 237.300 ms[39m
+[33m2026-09-30 12:20:05:205 warn: MongoDB deployment does not support transactions; multi-document writes are not atomic.[39m
+[33m2026-09-30 12:20:05:205 warn: [Operational Error] A driver with this mobile number already exists[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/drivers HTTP/1.1" 409 77 "-" "-" - 7.809 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/auth/login HTTP/1.1" 200 357 "-" "-" - 1008.116 ms[39m
+[33m2026-09-30 12:20:05:205 warn: Validation error: [{"path":"body.mobile","message":"Invalid mobile number format"}][39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/drivers HTTP/1.1" 400 122 "-" "-" - 3.641 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/payments HTTP/1.1" 201 480 "-" "-" - 252.996 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "GET /api/v1/drivers?search=Suresh HTTP/1.1" 200 402 "-" "-" - 16.239 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/vehicles HTTP/1.1" 201 349 "-" "-" - 96.167 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/routes HTTP/1.1" 201 455 "-" "-" - 206.751 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/firms HTTP/1.1" 201 427 "-" "-" - 63.951 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "GET /api/v1/payments/summary?firmId=6abcb11c77c9195db24d8b25&month=2&year=2026 HTTP/1.1" 200 699 "-" "-" - 76.955 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/documents HTTP/1.1" 201 457 "-" "-" - 320.300 ms[39m
+[33m2026-09-30 12:20:05:205 warn: Validation error: [{"path":"body.pickupLocation","message":"Pickup location is required"}][39m
+[33m2026-09-30 12:20:05:205 warn: Validation error: [{"path":"body.expiryDate","message":"Issue date must be on or before expiry date"}][39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "PATCH /api/v1/drivers/6abcb11d443844b935e36b75 HTTP/1.1" 200 367 "-" "-" - 106.731 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/documents HTTP/1.1" 400 141 "-" "-" - 6.938 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/routes HTTP/1.1" 400 129 "-" "-" - 8.022 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/expenses HTTP/1.1" 201 629 "-" "-" - 282.455 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "GET /api/v1/payments?invoiceId=6abcb11c77c9195db24d8b2c HTTP/1.1" 200 738 "-" "-" - 71.573 ms[39m
+[33m2026-09-30 12:20:05:205 warn: [Operational Error] A vehicle with this registration number already exists[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/vehicles HTTP/1.1" 409 84 "-" "-" - 12.984 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "DELETE /api/v1/drivers/6abcb11d443844b935e36b7f HTTP/1.1" 200 56 "-" "-" - 111.313 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "GET /api/v1/documents?vehicleId=6abcb11c2fe832a1a4a4c423&status=expired HTTP/1.1" 200 525 "-" "-" - 46.828 ms[39m
+[33m2026-09-30 12:20:05:205 warn: [Operational Error] A firm with this name already exists[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/firms HTTP/1.1" 409 66 "-" "-" - 34.989 ms[39m
+[33m2026-09-30 12:20:05:205 warn: Validation error: [{"path":"query.page","message":"Page must be a positive integer"},{"path":"query.limit","message":"Limit cannot exceed 100"}][39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "GET /api/v1/routes?page=0&limit=101 HTTP/1.1" 400 183 "-" "-" - 9.239 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/trips HTTP/1.1" 201 734 "-" "-" - 270.796 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "GET /api/v1/firms?search=Neeraj HTTP/1.1" 200 335 "-" "-" - 20.382 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/documents/upload HTTP/1.1" 201 597 "-" "-" - 91.952 ms[39m
+[33m2026-09-30 12:20:05:205 warn: [Operational Error] A route with this name already exists[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/routes HTTP/1.1" 409 67 "-" "-" - 12.277 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "GET /api/v1/dashboard?month=9&year=2026 HTTP/1.1" 200 1530 "-" "-" - 170.343 ms[39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "GET /api/v1/expenses?category=fuel&startDate=2026-05-01&endDate=2026-05-20 HTTP/1.1" 200 735 "-" "-" - 211.949 ms[39m
+[33m2026-09-30 12:20:05:205 warn: Validation error: [{"path":"endKm","message":"End kilometers cannot be less than start kilometers"}][39m
+[32m2026-09-30 12:20:05:205 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:05 +0000] "POST /api/v1/trips HTTP/1.1" 400 139 "-" "-" - 3.239 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "GET /api/v1/documents/6abcb11d2fe832a1a4a4c44b/file HTTP/1.1" 200 21 "-" "-" - 104.272 ms[39m
+[33m2026-09-30 12:20:06:206 warn: [Operational Error] Active vehicle not found[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "POST /api/v1/trips HTTP/1.1" 404 54 "-" "-" - 12.472 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "POST /api/v1/payments HTTP/1.1" 201 398 "-" "-" - 43.521 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "GET /api/v1/routes?search=checkpoint HTTP/1.1" 200 523 "-" "-" - 119.371 ms[39m
+[33m2026-09-30 12:20:06:206 warn: Validation error: [{"path":"body.registrationNumber","message":"Registration number contains invalid characters"}][39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "POST /api/v1/vehicles HTTP/1.1" 400 153 "-" "-" - 3.520 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "PATCH /api/v1/firms/6abcb11d3db029be2f6c3868 HTTP/1.1" 200 429 "-" "-" - 166.746 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "POST /api/v1/payments HTTP/1.1" 201 398 "-" "-" - 78.357 ms[39m
+[33m2026-09-30 12:20:06:206 warn: [Operational Error] Payment exceeds the invoice outstanding amount[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "POST /api/v1/payments HTTP/1.1" 409 76 "-" "-" - 10.735 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "GET /api/v1/routes?isActive=false&page=1&limit=1 HTTP/1.1" 200 478 "-" "-" - 7.372 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "POST /api/v1/trips HTTP/1.1" 201 734 "-" "-" - 177.868 ms[39m
+[33m2026-09-30 12:20:06:206 warn: [Operational Error] Payments can only be recorded against finalized invoices[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "POST /api/v1/payments HTTP/1.1" 409 86 "-" "-" - 7.293 ms[39m
+[33m2026-09-30 12:20:06:206 warn: [Operational Error] Payment exceeds the invoice outstanding amount[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "PATCH /api/v1/routes/6abcb11e83cbf60d2ca0aa0f HTTP/1.1" 200 457 "-" "-" - 55.402 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "POST /api/v1/payments HTTP/1.1" 409 76 "-" "-" - 11.024 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "GET /api/v1/expenses/summary?month=5&year=2026 HTTP/1.1" 200 397 "-" "-" - 134.755 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "GET /api/v1/vehicles?status=on_trip HTTP/1.1" 200 373 "-" "-" - 129.261 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "DELETE /api/v1/routes/6abcb11e83cbf60d2ca0aa0f HTTP/1.1" 200 55 "-" "-" - 53.407 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "GET /api/v1/expenses?category=driver_wages HTTP/1.1" 200 925 "-" "-" - 23.232 ms[39m
+[33m2026-09-30 12:20:06:206 warn: MongoDB deployment does not support transactions; multi-document writes are not atomic.[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "PATCH /api/v1/trips/6abcb11e10d9279738a9da8c HTTP/1.1" 200 742 "-" "-" - 135.696 ms[39m
+[33m2026-09-30 12:20:06:206 warn: [Operational Error] Route not found[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "GET /api/v1/routes/6abcb11e83cbf60d2ca0aa0f HTTP/1.1" 404 45 "-" "-" - 24.602 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "GET /api/v1/trips/6abcb11e10d9279738a9da8c HTTP/1.1" 200 744 "-" "-" - 6.441 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "DELETE /api/v1/firms/6abcb11e3db029be2f6c3877 HTTP/1.1" 200 54 "-" "-" - 58.232 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "POST /api/v1/trips HTTP/1.1" 201 734 "-" "-" - 27.630 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "POST /api/v1/invoices/generate HTTP/1.1" 201 4176 "-" "-" - 852.215 ms[39m
+[33m2026-09-30 12:20:06:206 warn: [Operational Error] An invoice already exists for this firm, vehicle, and billing month[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "POST /api/v1/invoices/generate HTTP/1.1" 409 97 "-" "-" - 41.134 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "GET /api/v1/expenses?category=driver_advance HTTP/1.1" 200 778 "-" "-" - 62.758 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "GET /api/v1/vehicles?search=MH01 HTTP/1.1" 200 380 "-" "-" - 465.448 ms[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "POST /api/v1/trips HTTP/1.1" 201 741 "-" "-" - 508.139 ms[39m
+[33m2026-09-30 12:20:06:206 warn: [Operational Error] Invalid credentials[39m
+[32m2026-09-30 12:20:06:206 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:06 +0000] "POST /api/v1/auth/login HTTP/1.1" 401 49 "-" "-" - 337.856 ms[39m
+[32m2026-09-30 12:20:07:207 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:07 +0000] "GET /api/v1/expenses?category=loading_unloading HTTP/1.1" 200 946 "-" "-" - 193.021 ms[39m
+[32m2026-09-30 12:20:07:207 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:07 +0000] "GET /api/v1/trips?month=2026-06&vehicleId=6abcb11d10d9279738a9da45&page=1&limit=1 HTTP/1.1" 200 801 "-" "-" - 211.514 ms[39m
+[33m2026-09-30 12:20:07:207 warn: [Operational Error] Invalid credentials[39m
+[32m2026-09-30 12:20:07:207 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:07 +0000] "POST /api/v1/auth/login HTTP/1.1" 401 49 "-" "-" - 5.255 ms[39m
+[32m2026-09-30 12:20:07:207 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:07 +0000] "PATCH /api/v1/vehicles/6abcb11f718fe5b22493a83d HTTP/1.1" 200 312 "-" "-" - 169.147 ms[39m
+[32m2026-09-30 12:20:07:207 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:07 +0000] "GET /api/v1/trips?search=July HTTP/1.1" 200 809 "-" "-" - 82.833 ms[39m
+[32m2026-09-30 12:20:07:207 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:07 +0000] "PATCH /api/v1/expenses/6abcb11f36d3340befff3215 HTTP/1.1" 200 549 "-" "-" - 243.581 ms[39m
+[32m2026-09-30 12:20:07:207 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:07 +0000] "POST /api/v1/invoices/generate HTTP/1.1" 201 2689 "-" "-" - 637.557 ms[39m
+[32m2026-09-30 12:20:07:207 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:07 +0000] "PATCH /api/v1/invoices/6abcb11f160c1cf7f7cbcef3/approve HTTP/1.1" 200 2679 "-" "-" - 33.761 ms[39m
+[32m2026-09-30 12:20:07:207 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:07 +0000] "GET /api/v1/trips?driverId=6abcb11d10d9279738a9da4e&firmId=6abcb11c10d9279738a9da3e HTTP/1.1" 200 1482 "-" "-" - 82.395 ms[39m
+[32m2026-09-30 12:20:07:207 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:07 +0000] "DELETE /api/v1/expenses/6abcb11f36d3340befff3215 HTTP/1.1" 200 57 "-" "-" - 78.499 ms[39m
+[32m2026-09-30 12:20:07:207 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:07 +0000] "PATCH /api/v1/invoices/6abcb11f160c1cf7f7cbcef3/finalize HTTP/1.1" 200 2802 "-" "-" - 57.170 ms[39m
+[32m2026-09-30 12:20:07:207 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:07 +0000] "DELETE /api/v1/vehicles/6abcb11f718fe5b22493a844 HTTP/1.1" 200 57 "-" "-" - 90.656 ms[39m
+[33m2026-09-30 12:20:07:207 warn: Authentication failed: Authentication token is missing or invalid[39m
+[33m2026-09-30 12:20:07:207 warn: [Operational Error] Invalid or expired token[39m
+[32m2026-09-30 12:20:07:207 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:07 +0000] "GET /api/v1/auth/me HTTP/1.1" 401 54 "-" "-" - 2.622 ms[39m
+[32m2026-09-30 12:20:07:207 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:07 +0000] "GET /api/v1/vehicles HTTP/1.1" 200 133 "-" "-" - 52.379 ms[39m
+[32m2026-09-30 12:20:07:207 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:07 +0000] "POST /api/v1/trips HTTP/1.1" 201 732 "-" "-" - 252.674 ms[39m
+[32m2026-09-30 12:20:08:208 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:08 +0000] "GET /api/v1/invoices/6abcb11f160c1cf7f7cbcef3/pdf HTTP/1.1" 200 10881 "-" "-" - 554.475 ms[39m
+[32m2026-09-30 12:20:08:208 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:08 +0000] "DELETE /api/v1/trips/6abcb11f10d9279738a9dabe HTTP/1.1" 200 56 "-" "-" - 328.612 ms[39m
+[32m2026-09-30 12:20:08:208 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:08 +0000] "POST /api/v1/auth/login HTTP/1.1" 200 357 "-" "-" - 340.669 ms[39m
+[32m2026-09-30 12:20:08:208 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:08 +0000] "GET /api/v1/trips HTTP/1.1" 200 130 "-" "-" - 23.317 ms[39m
+[32m2026-09-30 12:20:08:208 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:08 +0000] "GET /api/v1/auth/me HTTP/1.1" 200 269 "-" "-" - 13.079 ms[39m
+[32m2026-09-30 12:20:08:208 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:08 +0000] "POST /api/v1/invoices/generate HTTP/1.1" 201 2689 "-" "-" - 103.227 ms[39m
+[32m2026-09-30 12:20:08:208 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:08 +0000] "PATCH /api/v1/invoices/6abcb120160c1cf7f7cbcf28/approve HTTP/1.1" 200 2643 "-" "-" - 17.753 ms[39m
+[32m2026-09-30 12:20:08:208 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:08 +0000] "PATCH /api/v1/invoices/6abcb120160c1cf7f7cbcf28/finalize HTTP/1.1" 200 2766 "-" "-" - 20.228 ms[39m
+[33m2026-09-30 12:20:08:208 warn: Validation error: [{"path":"body.reason","message":"A reason of at least 5 characters is required to reopen a bill"}][39m
+[32m2026-09-30 12:20:08:208 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:08 +0000] "PATCH /api/v1/invoices/6abcb120160c1cf7f7cbcf28/reopen HTTP/1.1" 400 156 "-" "-" - 3.921 ms[39m
+[32m2026-09-30 12:20:08:208 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:08 +0000] "PATCH /api/v1/invoices/6abcb120160c1cf7f7cbcf28/reopen HTTP/1.1" 200 2794 "-" "-" - 30.957 ms[39m
+[32m2026-09-30 12:20:09:209 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:09 +0000] "GET /api/v1/invoices/6abcb120160c1cf7f7cbcf28/history HTTP/1.1" 200 1449 "-" "-" - 62.941 ms[39m
+[32m2026-09-30 12:20:09:209 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:09 +0000] "POST /api/v1/invoices/generate HTTP/1.1" 201 2683 "-" "-" - 88.930 ms[39m
+[33m2026-09-30 12:20:09:209 warn: [Operational Error] Only finalized invoices can be downloaded as PDF[39m
+[32m2026-09-30 12:20:09:209 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:09 +0000] "GET /api/v1/invoices/6abcb121160c1cf7f7cbcf63/pdf HTTP/1.1" 409 78 "-" "-" - 5.811 ms[39m
+ts-jest[config] (WARN) [94mmessage[0m[90m TS151002: [0mUsing hybrid module 
+kind (Node16/18/Next) is only supported in "isolatedModules: true". Please set 
+"isolatedModules: true" in your tsconfig.json. To disable this message, you 
+can set "diagnostics.ignoreCodes" to include 151002 in your ts-jest config. 
+See more at 
+https://kulshekhar.github.io/ts-jest/docs/getting-started/options/diagnostics
+  console.error
+    Γùç injected env (5) from .env
+
+    [0m [90m 3 |[39m
+     [90m 4 |[39m [90m// Load env variables[39m
+    [31m[1m>[22m[39m[90m 5 |[39m dotenv[33m.[39mconfig()[33m;[39m
+     [90m   |[39m        [31m[1m^[22m[39m
+     [90m 6 |[39m
+     [90m 7 |[39m [36mconst[39m envSchema [33m=[39m z[33m.[39mobject({
+     [90m 8 |[39m   [33mNODE_ENV[39m[33m:[39m z[33m.[39m[36menum[39m([[32m'development'[39m[33m,[39m [32m'production'[39m[33m,[39m [32m'test'[39m])[33m.[39m[36mdefault[39m([32m'development'[39m)[33m,[39m[0m
+
+      at z (node_modules/dotenv/dist/index.cjs:7:300)
+      at Object.ee [as configDotenv] (node_modules/dotenv/dist/index.cjs:7:1145)
+      at Object.te [as config] (node_modules/dotenv/dist/index.cjs:7:1253)
+      at Object.<anonymous> (src/config/env.ts:5:8)
+      at Object.<anonymous> (src/app.ts:5:1)
+      at Object.<anonymous> (src/modules/contracts/__tests__/contract.test.ts:4:1)
+
+[32m2026-09-30 12:20:15:2015 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:15 +0000] "POST /api/v1/auth/login HTTP/1.1" 200 370 "-" "-" - 102.279 ms[39m
+[32m2026-09-30 12:20:15:2015 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:15 +0000] "POST /api/v1/contracts HTTP/1.1" 201 317 "-" "-" - 14.210 ms[39m
+[32m2026-09-30 12:20:15:2015 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:15 +0000] "PATCH /api/v1/contracts/6abcb127191c6efa66735f10 HTTP/1.1" 200 359 "-" "-" - 11.042 ms[39m
+[32m2026-09-30 12:20:16:2016 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:16 +0000] "POST /api/v1/contracts/6abcb127191c6efa66735f10/versions HTTP/1.1" 201 834 "-" "-" - 166.000 ms[39m
+[32m2026-09-30 12:20:16:2016 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:16 +0000] "POST /api/v1/contracts HTTP/1.1" 201 317 "-" "-" - 63.734 ms[39m
+[32m2026-09-30 12:20:16:2016 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:16 +0000] "GET /api/v1/contracts/6abcb128191c6efa66735f4c/versions/effective?date=2026-06-30 HTTP/1.1" 200 887 "-" "-" - 24.212 ms[39m
+[32m2026-09-30 12:20:16:2016 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:16 +0000] "GET /api/v1/contracts/6abcb128191c6efa66735f4c/versions/effective?date=2026-07-01 HTTP/1.1" 200 847 "-" "-" - 13.517 ms[39m
+[32m2026-09-30 12:20:16:2016 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:16 +0000] "POST /api/v1/contracts HTTP/1.1" 201 317 "-" "-" - 4.911 ms[39m
+[33m2026-09-30 12:20:16:2016 warn: [Operational Error] The effective date range overlaps an existing contract version[39m
+[32m2026-09-30 12:20:16:2016 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:16 +0000] "POST /api/v1/contracts/6abcb128191c6efa66735f6f/versions HTTP/1.1" 409 92 "-" "-" - 9.213 ms[39m
+[33m2026-09-30 12:20:16:2016 warn: Validation error: [{"path":"body.billingRules.capacityRates.0.capacity","message":"Too small: expected number to be >0"}][39m
+[32m2026-09-30 12:20:16:2016 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:16 +0000] "POST /api/v1/contracts/6abcb128191c6efa66735f6f/versions HTTP/1.1" 400 160 "-" "-" - 1.902 ms[39m
+[32m2026-09-30 12:20:16:2016 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:16 +0000] "POST /api/v1/contracts HTTP/1.1" 201 317 "-" "-" - 5.641 ms[39m
+[32m2026-09-30 12:20:16:2016 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:16 +0000] "POST /api/v1/contracts/6abcb128191c6efa66735f80/versions HTTP/1.1" 201 834 "-" "-" - 13.973 ms[39m
+[32m2026-09-30 12:20:16:2016 info: ::ffff:127.0.0.1 - - [30/Sep/2026:06:50:16 +0000] "DELETE /api/v1/contracts/6abcb128191c6efa66735f80 HTTP/1.1" 200 62 "-" "-" - 8.119 ms[39m
+Test Suites: 15 passed, 15 total
+Tests:       82 passed, 82 total
+Snapshots:   0 total
+Time:        77.947 s
+Ran all test suites.
+Force exiting Jest: Have you considered using `--detectOpenHandles` to detect 
+async operations that kept running after all tests finished?

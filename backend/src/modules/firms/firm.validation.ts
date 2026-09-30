@@ -18,12 +18,23 @@ const contactDetailsSchema = z.object({
   mobile: z.string().regex(/^\+?[\d\s-]{10,15}$/, 'Invalid mobile number format').optional().or(z.literal('')),
 });
 
+const bankDetailsSchema = z.object({
+  accountName: z.string().optional(),
+  accountNumber: z.string().optional(),
+  ifscCode: z.string().optional(),
+  bankName: z.string().optional(),
+  branchName: z.string().optional(),
+});
+
 export const createFirmSchema = z.object({
   body: z.object({
     name: z.string().min(2, 'Firm name must be at least 2 characters'),
+    companyId: objectIdSchema.optional(),
     billingName: z.string().optional(),
+    billPrefix: z.string().min(2).max(10).regex(/^[A-Za-z0-9]+$/, 'Bill prefix must be alphanumeric').optional(),
     address: addressSchema.optional(),
     contactDetails: contactDetailsSchema.optional(),
+    bankDetails: bankDetailsSchema.optional(),
     gstNumber: z.string().optional(),
     isActive: z.boolean().optional(),
     billingConfiguration: z.record(z.string(), z.any()).optional(),
@@ -37,9 +48,12 @@ export const updateFirmSchema = z.object({
   }),
   body: z.object({
     name: z.string().min(2).optional(),
+    companyId: objectIdSchema.nullable().optional(),
     billingName: z.string().optional(),
+    billPrefix: z.string().min(2).max(10).regex(/^[A-Za-z0-9]+$/, 'Bill prefix must be alphanumeric').optional(),
     address: addressSchema.optional(),
     contactDetails: contactDetailsSchema.optional(),
+    bankDetails: bankDetailsSchema.optional(),
     gstNumber: z.string().optional(),
     isActive: z.boolean().optional(),
     billingConfiguration: z.record(z.string(), z.any()).optional(),

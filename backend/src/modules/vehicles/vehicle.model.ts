@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IVehicle extends Document {
+  _id: mongoose.Types.ObjectId;
   registrationNumber: string;
   vehicleType: string;
   capacity: number; // in Metric Tons or standard unit
@@ -9,6 +10,8 @@ export interface IVehicle extends Document {
   isActive: boolean;
   isDeleted: boolean; // For soft-deletes
   firmId?: mongoose.Types.ObjectId; // Associated firm/customer
+  /** Stable sequential number within the firm; forms the last segment of the bill number. */
+  vehicleNumberPerFirm?: number;
   status: 'available' | 'on_trip' | 'maintenance';
   metadata?: Record<string, any>;
   createdAt: Date;
@@ -66,6 +69,10 @@ const vehicleSchema = new Schema<IVehicle>(
       ref: 'Firm', // Note: Firm model will be implemented in the Firms module
       index: true,
     },
+    vehicleNumberPerFirm: {
+      type: Number,
+      min: 1,
+    },
     status: {
       type: String,
       enum: ['available', 'on_trip', 'maintenance'],
@@ -91,5 +98,11 @@ vehicleSchema.pre('save', function (next) {
 });
 
 vehicleSchema.index({ isDeleted: 1, isActive: 1 });
+
+// The vehicle number only has to be unique within the firm that issues the bill.
+vehicleSchema.index(
+  { firmId: 1, vehicleNumberPerFirm: 1 },
+  { unique: true, partialFilterExpression: { vehicleNumberPerFirm: { $type: 'number' }, isDeleted: false } }
+);
 
 export const VehicleModel = mongoose.model<IVehicle>('Vehicle', vehicleSchema);

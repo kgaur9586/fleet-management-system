@@ -1,4 +1,5 @@
 import { FirmModel, IFirm } from './firm.model';
+import { CompanyModel } from '../companies/company.model';
 import { NotFoundError, ConflictError } from '../../common/errors';
 import { FilterQuery } from 'mongoose';
 
@@ -21,6 +22,9 @@ export class FirmService {
       }
     }
 
+    if (data.companyId) await this.assertCompanyExists(String(data.companyId));
+    if (data.billPrefix) await this.assertBillPrefixAvailable(data.billPrefix);
+
     return FirmModel.create(data);
   }
 
@@ -42,8 +46,29 @@ export class FirmService {
       }
     }
 
+    if (data.companyId) await this.assertCompanyExists(String(data.companyId));
+    if (data.billPrefix && data.billPrefix.toUpperCase() !== firm.billPrefix) {
+      await this.assertBillPrefixAvailable(data.billPrefix, id);
+    }
+
     Object.assign(firm, data);
     return firm.save();
+  }
+
+  private static async assertCompanyExists(companyId: string) {
+    const company = await CompanyModel.findOne({ _id: companyId, isDeleted: false, isActive: true });
+    if (!company) throw new NotFoundError('Company not found or inactive');
+  }
+
+  private static async assertBillPrefixAvailable(billPrefix: string, excludeId?: string) {
+    const query: FilterQuery<IFirm> = {
+      billPrefix: billPrefix.toUpperCase(),
+      isDeleted: false,
+    };
+    if (excludeId) query._id = { $ne: excludeId };
+    if (await FirmModel.findOne(query)) {
+      throw new ConflictError('Another firm already uses this bill prefix');
+    }
   }
 
   static async getById(id: string) {
