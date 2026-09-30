@@ -1,3 +1,4 @@
+export * from './CompanySelector';
 export * from './ContractSelector';
 export * from './DateRangeSelector';
 export * from './DriverSelector';

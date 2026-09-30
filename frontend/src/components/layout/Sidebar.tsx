@@ -1,14 +1,18 @@
 import { NavLink } from 'react-router-dom';
-import { BarChart3, Boxes, ClipboardList, FileText, Gauge, Map, ReceiptText, Route, Truck, Users, X } from 'lucide-react';
+import { BarChart3, Boxes, ClipboardList, FileArchive, FileText, Gauge, Landmark, Map, Receipt, ReceiptText, Route, Truck, Users, Wallet, X } from 'lucide-react';
 
 const links = [
   { to: '/', label: 'Overview', icon: Gauge },
   { to: '/vehicles', label: 'Vehicles', icon: Truck },
   { to: '/drivers', label: 'Drivers', icon: Users },
+  { to: '/companies', label: 'Companies', icon: Landmark },
   { to: '/firms', label: 'Firms', icon: Boxes },
   { to: '/routes', label: 'Routes', icon: Route },
   { to: '/contracts', label: 'Contracts', icon: FileText },
   { to: '/trips', label: 'Trips', icon: Map },
+  { to: '/expenses', label: 'Expenses', icon: Wallet },
+  { to: '/payments', label: 'Payments', icon: Receipt },
+  { to: '/documents', label: 'Documents', icon: FileArchive },
   { to: '/reports', label: 'Reports', icon: BarChart3 },
 ];
 
