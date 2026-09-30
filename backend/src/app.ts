@@ -20,6 +20,7 @@ const apiLimiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.',
 });
 app.use('/api', apiLimiter);
+app.set('trust proxy', 1);
 
 // CORS middleware
 app.use(
