@@ -14,7 +14,8 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  // Start in a loading state whenever a persisted token exists, so route guards wait for rehydration instead of flashing the login page.
+  const [isLoading, setIsLoading] = useState(() => Boolean(authToken.get()));
 
   const login = useCallback(async (payload: LoginPayload) => {
     setIsLoading(true);

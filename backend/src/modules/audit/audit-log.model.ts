@@ -11,7 +11,8 @@ export type AuditAction =
   | 'driver_advance.created'
   | 'driver_advance.recovery_applied'
   | 'salary.generated'
-  | 'salary.paid';
+  | 'salary.paid'
+  | 'salary.other_deductions_updated';
 
 export interface IAuditLog extends Document {
   action: AuditAction;

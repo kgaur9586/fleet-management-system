@@ -1,5 +1,5 @@
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Alert, Badge, Button, Card, LoadingSpinner } from '@/components/common';
@@ -18,6 +18,7 @@ export function SalaryDetailsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [deductionAmount, setDeductionAmount] = useState(0);
+  const [otherDeductionsAmount, setOtherDeductionsAmount] = useState(0);
   const [paidOn, setPaidOn] = useState(new Date().toISOString().slice(0, 10));
   const [paymentMode, setPaymentMode] = useState<SalaryPaymentMode>('cash');
   const [paymentReference, setPaymentReference] = useState('');
@@ -40,6 +41,15 @@ export function SalaryDetailsPage() {
     onError: (caught) => notify.error(caught),
   });
 
+  const otherDeductionsMutation = useMutation({
+    mutationFn: () => salaryApi.setOtherDeductions(id, otherDeductionsAmount),
+    onSuccess: () => {
+      notify.success('Other deductions updated.');
+      void queryClient.invalidateQueries({ queryKey: ['salary', id] });
+    },
+    onError: (caught) => notify.error(caught),
+  });
+
   const markPaidMutation = useMutation({
     mutationFn: () => salaryApi.markPaid(id, { paidOn: new Date(`${paidOn}T00:00:00.000Z`).toISOString(), paymentMode, paymentReference: paymentReference || undefined }),
     onSuccess: () => {
@@ -55,12 +65,20 @@ export function SalaryDetailsPage() {
     deductionMutation.mutate();
   }
 
+  async function submitOtherDeductions(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (otherDeductionsAmount < 0) { notify.error('Deduction amount cannot be negative.'); return; }
+    otherDeductionsMutation.mutate();
+  }
+
   if (salaryQuery.isLoading) return <div className="route-loading"><LoadingSpinner label="Loading payroll record" /></div>;
   if (salaryQuery.error || !salaryQuery.data) return <div className="vehicle-page"><Alert tone="error" title="Payroll record unavailable">{getApiErrorMessage(salaryQuery.error)}</Alert><Button variant="secondary" onClick={() => navigate('/salary')}>Back to payroll</Button></div>;
 
   const { record, recoveries } = salaryQuery.data;
   const driver = typeof record.driverId === 'object' ? record.driverId : null;
   const isPaid = record.paymentStatus === 'paid';
+
+  useEffect(() => { setOtherDeductionsAmount(decimalText(record.otherDeductions)); }, [record.otherDeductions]);
 
   return <div className="vehicle-page">
     <div className="page-heading"><div><Link className="back-link" to="/salary"><ArrowLeft size={15} /> Payroll</Link><p className="eyebrow">Driver settlement</p><h1>{driver?.name ?? 'Driver'} — {record.month}/{record.year}</h1><p className="muted">{record.daysWorked} days worked at {money.format(decimalText(record.dailyWageRate))}/day</p></div><Badge tone={isPaid ? 'success' : 'warning'}>{record.paymentStatus}</Badge></div>
@@ -82,6 +100,13 @@ export function SalaryDetailsPage() {
       <form onSubmit={submitDeduction} className="form-grid">
         <NumberInput id="deductionAmount" label="Deduction amount" min={0} step="0.01" value={deductionAmount || ''} onChange={(event) => setDeductionAmount(Number(event.target.value))} />
         <div className="form-actions"><Button type="submit" loading={deductionMutation.isPending}>Apply deduction</Button></div>
+      </form>
+    </Card>}
+
+    {!isPaid && <Card title="Other deductions" description="e.g. uniform cost, fine, or other flat deduction. Re-entering an amount replaces the previous value.">
+      <form onSubmit={submitOtherDeductions} className="form-grid">
+        <NumberInput id="otherDeductionsAmount" label="Other deductions amount" min={0} step="0.01" value={otherDeductionsAmount || ''} onChange={(event) => setOtherDeductionsAmount(Number(event.target.value))} />
+        <div className="form-actions"><Button type="submit" loading={otherDeductionsMutation.isPending}>Save</Button></div>
       </form>
     </Card>}
 

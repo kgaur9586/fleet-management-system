@@ -39,6 +39,15 @@ export class SalaryController {
     }
   }
 
+  static async setOtherDeductions(req: Request, res: Response, next: NextFunction) {
+    try {
+      const record = await SalaryService.setOtherDeductions(req.params.id as string, req.body.amount, req.user?.id);
+      sendSuccess(res, 200, 'Other deductions updated successfully', record);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async markPaid(req: Request, res: Response, next: NextFunction) {
     try {
       const record = await SalaryService.markPaid(req.params.id as string, req.body, req.user?.id);

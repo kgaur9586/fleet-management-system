@@ -60,6 +60,7 @@ import dashboardRoutes from './modules/dashboard/dashboard.routes';
 import driverAdvanceRoutes from './modules/driver-advances/driver-advance.routes';
 import salaryRoutes from './modules/salary/salary.routes';
 import hsdRateRoutes from './modules/hsd-rates/hsd-rate.routes';
+import reportRoutes from './modules/reports/report.routes';
 
 // API Routes will be registered here
 app.use('/api/v1/auth', authRoutes);
@@ -78,6 +79,7 @@ app.use('/api/v1/dashboard', dashboardRoutes);
 app.use('/api/v1/driver-advances', driverAdvanceRoutes);
 app.use('/api/v1/salary', salaryRoutes);
 app.use('/api/v1/hsd-rates', hsdRateRoutes);
+app.use('/api/v1/reports', reportRoutes);
 
 // Handle 404
 app.use((req: Request, res: Response, next: NextFunction) => {

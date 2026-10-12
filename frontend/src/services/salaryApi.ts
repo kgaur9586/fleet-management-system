@@ -9,6 +9,8 @@ export const salaryApi = {
   get: (id: string) => apiClient.get<{ record: SalaryRecord; recoveries: DriverAdvanceRecovery[] }>(`/salary/${id}`),
   applyDeduction: (id: string, amount: number) =>
     apiClient.patch<{ record: SalaryRecord; deduction: SalaryDeductionResult }>(`/salary/${id}/deduction`, { amount }),
+  setOtherDeductions: (id: string, amount: number) =>
+    apiClient.patch<SalaryRecord>(`/salary/${id}/other-deductions`, { amount }),
   markPaid: (id: string, payload: { paidOn?: string; paymentMode?: SalaryPaymentMode; paymentReference?: string; notes?: string }) =>
     apiClient.patch<SalaryRecord>(`/salary/${id}/mark-paid`, payload),
 };

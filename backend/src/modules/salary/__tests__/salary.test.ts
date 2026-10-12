@@ -161,6 +161,35 @@ describe('Driver salary generation', () => {
     expect(decimalNumber(record?.advanceDeduction)).toBe(600);
   });
 
+  it('sets a flat other-deductions amount, replacing rather than stacking on re-entry', async () => {
+    const driver = await createDriver(1000);
+    const driverId = String(driver._id);
+    await createTrip(driverId, '2026-10-01T08:00:00.000Z');
+    await createTrip(driverId, '2026-10-02T08:00:00.000Z');
+
+    const generated = await request(app).post('/api/v1/salary/generate').set('Authorization', `Bearer ${token}`).send({ driverId, month: 10, year: 2026 });
+    const salaryId = generated.body.data._id;
+    expect(decimalNumber(generated.body.data.grossWages)).toBe(2000);
+
+    const first = await request(app).patch(`/api/v1/salary/${salaryId}/other-deductions`).set('Authorization', `Bearer ${token}`).send({ amount: 150 });
+    expect(first.status).toBe(200);
+    expect(decimalNumber(first.body.data.otherDeductions)).toBe(150);
+    expect(decimalNumber(first.body.data.netPayable)).toBe(1850);
+
+    const second = await request(app).patch(`/api/v1/salary/${salaryId}/other-deductions`).set('Authorization', `Bearer ${token}`).send({ amount: 300 });
+    expect(decimalNumber(second.body.data.otherDeductions)).toBe(300);
+    expect(decimalNumber(second.body.data.netPayable)).toBe(1700);
+
+    const tooLarge = await request(app).patch(`/api/v1/salary/${salaryId}/other-deductions`).set('Authorization', `Bearer ${token}`).send({ amount: 5000 });
+    expect(tooLarge.status).toBe(400);
+
+    const paid = await request(app).patch(`/api/v1/salary/${salaryId}/mark-paid`).set('Authorization', `Bearer ${token}`).send({ paymentMode: 'cash' });
+    expect(paid.status).toBe(200);
+
+    const blocked = await request(app).patch(`/api/v1/salary/${salaryId}/other-deductions`).set('Authorization', `Bearer ${token}`).send({ amount: 50 });
+    expect(blocked.status).toBe(409);
+  });
+
   it('marks a record as paid and blocks further deduction changes', async () => {
     const driver = await createDriver(500);
     const driverId = String(driver._id);

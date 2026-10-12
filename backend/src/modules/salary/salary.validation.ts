@@ -33,6 +33,13 @@ export const applyDeductionSchema = z.object({
   }),
 });
 
+export const setOtherDeductionsSchema = z.object({
+  params: z.object({ id: objectIdSchema }),
+  body: z.object({
+    amount: z.number().min(0, 'Deduction amount cannot be negative'),
+  }),
+});
+
 export const markPaidSchema = z.object({
   params: z.object({ id: objectIdSchema }),
   body: z.object({

@@ -127,6 +127,35 @@ export class SalaryService {
     });
   }
 
+  /** Owner-entered flat deduction (e.g. uniform cost, fine); re-entering an amount replaces the previous one, it is not additive. */
+  static async setOtherDeductions(id: string, amount: number, updatedBy?: string) {
+    if (amount < 0) throw new BadRequestError('Deduction amount cannot be negative');
+
+    const record = await SalaryRecordModel.findById(id);
+    if (!record) throw new NotFoundError('Salary record not found');
+    if (record.paymentStatus === 'paid') throw new ConflictError('Cannot change deductions on a salary record that has already been paid');
+
+    const grossWages = toNumber(record.grossWages);
+    const advanceDeduction = toNumber(record.advanceDeduction);
+    const netPayable = round2(grossWages - advanceDeduction - amount);
+    if (netPayable < 0) throw new BadRequestError('Deductions cannot exceed the gross wages for this month');
+
+    const previousAmount = toNumber(record.otherDeductions);
+    record.otherDeductions = amount as any;
+    record.netPayable = netPayable as any;
+    await record.save();
+
+    await AuditService.record({
+      action: 'salary.other_deductions_updated',
+      entityType: 'salary_record',
+      entityId: record._id as any,
+      userId: updatedBy,
+      changes: { before: { otherDeductions: previousAmount }, after: { otherDeductions: amount, netPayable } },
+    });
+
+    return record;
+  }
+
   static async markPaid(id: string, data: { paidOn?: Date; paymentMode?: ISalaryRecord['paymentMode']; paymentReference?: string; notes?: string }, paidBy?: string) {
     const record = await SalaryRecordModel.findById(id);
     if (!record) throw new NotFoundError('Salary record not found');
