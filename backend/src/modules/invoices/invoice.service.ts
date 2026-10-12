@@ -10,6 +10,7 @@ import { DriverModel } from '../drivers/driver.model';
 import { RouteModel } from '../routes/route.model';
 import { TripModel } from '../trips/trip.model';
 import { CompanyModel } from '../companies/company.model';
+import { HsdRateService } from '../hsd-rates/hsd-rate.service';
 import { AuditService } from '../audit/audit.service';
 import { calculateTripBilling } from '../billing/billing-engine';
 import { InvoiceModel, IInvoice } from './invoice.model';
@@ -50,37 +51,10 @@ const joinAddress = (address?: { street?: string; city?: string; state?: string;
   address ? [address.street, address.city, address.state, address.pinCode].filter(Boolean).join(', ') || undefined : undefined;
 
 export class InvoiceService {
-  static async generate(data: InvoiceGenerateInput, generatedBy?: string) {
-    if (!generatedBy) throw new BadRequestError('User context is required to generate an invoice');
-
-    const { firmId, vehicleId, month, year } = data;
-    const existing = await InvoiceModel.findOne({ firmId, vehicleId, month, year, isDeleted: false });
-    if (existing) {
-      throw new ConflictError('An invoice already exists for this firm, vehicle, and billing month');
-    }
-
-    const start = toDateRange(year, month);
-    const firm = await FirmModel.findOne({ _id: firmId, isDeleted: false }).lean();
-    if (!firm) throw new NotFoundError('Firm not found');
-
-    const selectedVehicle = await VehicleModel.findOne({ _id: vehicleId, isDeleted: false }).lean();
-    if (!selectedVehicle) throw new NotFoundError('Vehicle not found');
-
-    const trips = await TripModel.find({
-      firmId,
-      vehicleId,
-      tripDate: start,
-      operationalStatus: 'completed',
-      isDeleted: false,
-      billingInvoiceId: { $exists: false },
-    }).sort({ tripDate: 1 });
-
-    if (!trips.length) {
-      throw new NotFoundError('No completed trips found for the selected firm, vehicle, and month');
-    }
-
+  /** Shared by generate() and regenerate(): turns a set of completed trips into billed line items. */
+  private static async buildLineItemsFromTrips(trips: InstanceType<typeof TripModel>[]) {
     const lineItems: any[] = [];
-    let summary = {
+    const summary = {
       vehicleCount: 1,
       tripCount: 0,
       totalDistanceKm: 0,
@@ -104,7 +78,7 @@ export class InvoiceService {
         throw new NotFoundError('Trip references are incomplete or deleted');
       }
 
-      const billingRate = normalizeDecimal((version as any).billingRules?.fuelRatePerLitre);
+      const billingRate = (await HsdRateService.resolveRateForDate(trip.tripDate)) ?? normalizeDecimal((version as any).billingRules?.fuelRatePerLitre);
       const tollAmount = trip.toll && trip.toll.amount ? normalizeDecimal((trip.toll as any).amount) : 0;
 
       const result = calculateTripBilling(
@@ -123,7 +97,7 @@ export class InvoiceService {
         billingRate
       );
 
-      const lineItem = {
+      lineItems.push({
         tripId: trip._id,
         vehicleId: trip.vehicleId,
         driverId: trip.driverId,
@@ -153,9 +127,7 @@ export class InvoiceService {
         },
         snapshot: result,
         createdAt: new Date(),
-      };
-
-      lineItems.push(lineItem);
+      });
 
       summary.tripCount += 1;
       summary.totalDistanceKm += Number(result.distanceKm || 0);
@@ -165,6 +137,40 @@ export class InvoiceService {
       summary.otherBillableAmount += Number(result.otherBillableAmount || 0);
       summary.totalAmount += Number(result.totalAmount || 0);
     }
+
+    return { lineItems, summary };
+  }
+
+  static async generate(data: InvoiceGenerateInput, generatedBy?: string) {
+    if (!generatedBy) throw new BadRequestError('User context is required to generate an invoice');
+
+    const { firmId, vehicleId, month, year } = data;
+    const existing = await InvoiceModel.findOne({ firmId, vehicleId, month, year, isDeleted: false });
+    if (existing) {
+      throw new ConflictError('An invoice already exists for this firm, vehicle, and billing month');
+    }
+
+    const start = toDateRange(year, month);
+    const firm = await FirmModel.findOne({ _id: firmId, isDeleted: false }).lean();
+    if (!firm) throw new NotFoundError('Firm not found');
+
+    const selectedVehicle = await VehicleModel.findOne({ _id: vehicleId, isDeleted: false }).lean();
+    if (!selectedVehicle) throw new NotFoundError('Vehicle not found');
+
+    const trips = await TripModel.find({
+      firmId,
+      vehicleId,
+      tripDate: start,
+      operationalStatus: 'completed',
+      isDeleted: false,
+      billingInvoiceId: { $exists: false },
+    }).sort({ tripDate: 1 });
+
+    if (!trips.length) {
+      throw new NotFoundError('No completed trips found for the selected firm, vehicle, and month');
+    }
+
+    const { lineItems, summary } = await this.buildLineItemsFromTrips(trips);
 
     const tripIds = trips.map((trip) => String(trip._id));
     const companySnapshot = await this.resolveCompanySnapshot(firm.companyId ? String(firm.companyId) : undefined);
@@ -231,6 +237,63 @@ export class InvoiceService {
 
     return InvoiceModel.findById(invoiceId).populate('firmId', 'name billingName').populate('vehicleId', 'registrationNumber capacity');
   }
+
+  /**
+   * Rebuilds a draft invoice's line items from its firm/vehicle/month's currently eligible trips.
+   * Use after editing or adding trips post-generation (typically following a reopen).
+   */
+  static async regenerate(id: string, regeneratedBy?: string) {
+    const invoice = await this.requireInvoice(id);
+    if (invoice.status !== 'draft') {
+      throw new ConflictError('Only draft invoices can be regenerated; reopen a finalized invoice first');
+    }
+
+    const trips = await TripModel.find({
+      firmId: invoice.firmId,
+      vehicleId: invoice.vehicleId,
+      tripDate: toDateRange(invoice.year, invoice.month),
+      operationalStatus: 'completed',
+      isDeleted: false,
+      billingInvoiceId: { $exists: false },
+    }).sort({ tripDate: 1 });
+
+    if (!trips.length) {
+      throw new NotFoundError('No completed, unbilled trips found for this firm, vehicle, and month');
+    }
+
+    const { lineItems, summary } = await this.buildLineItemsFromTrips(trips);
+    const tripIds = trips.map((trip) => String(trip._id));
+
+    await withTransaction(async (session) => {
+      invoice.lineItems = lineItems;
+      invoice.summary = summary as any;
+      invoice.duplicateTripGuard = {
+        tripCount: tripIds.length,
+        tripIds,
+        hash: crypto.createHash('sha256').update([...tripIds].sort().join(',')).digest('hex'),
+        generatedAt: new Date(),
+      };
+      invoice.generatedAt = new Date();
+      await invoice.save({ session });
+
+      await TripModel.updateMany(
+        { _id: { $in: trips.map((trip) => trip._id) }, billingInvoiceId: { $exists: false } },
+        { $set: { billingInvoiceId: invoice._id } },
+        { session }
+      );
+    });
+
+    await AuditService.record({
+      action: 'invoice.regenerated',
+      entityType: 'invoice',
+      entityId: invoice._id as any,
+      userId: regeneratedBy,
+      changes: { after: { tripCount: tripIds.length, grandTotal: summary.totalAmount } },
+    });
+
+    return InvoiceModel.findById(id).populate('firmId', 'name billingName').populate('vehicleId', 'registrationNumber capacity');
+  }
+
   static async list(options: { page?: number; limit?: number; search?: string; firmId?: string; vehicleId?: string; status?: IInvoice['status']; month?: number; year?: number; }) {
     const { page = 1, limit = 10, search, firmId, vehicleId, status, month, year } = options;
     const query: FilterQuery<IInvoice> = { isDeleted: false };
@@ -343,7 +406,11 @@ export class InvoiceService {
     invoice.outstandingAmount = 0;
     invoice.paymentStatus = 'unpaid';
 
-    const reopened = await invoice.save();
+    // Unlink the invoice's trips so edits (or a fresh regenerate) can pick them back up.
+    const reopened = await withTransaction(async (session) => {
+      await TripModel.updateMany({ billingInvoiceId: invoice._id }, { $unset: { billingInvoiceId: '' } }, { session });
+      return invoice.save({ session });
+    });
     await AuditService.record({
       action: 'invoice.reopened',
       entityType: 'invoice',

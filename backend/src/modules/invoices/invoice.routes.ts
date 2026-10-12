@@ -11,6 +11,7 @@ router.use(requireAuth, requireRole(['owner', 'admin']));
 router.post('/generate', validateResource(generateInvoiceSchema), InvoiceController.generate);
 router.get('/', validateResource(queryInvoiceSchema), InvoiceController.list);
 router.get('/:id', validateResource(getInvoiceSchema), InvoiceController.getById);
+router.patch('/:id/regenerate', validateResource(getInvoiceSchema), InvoiceController.regenerate);
 router.patch('/:id/approve', validateResource(invoiceTransitionSchema), InvoiceController.approve);
 router.patch('/:id/finalize', validateResource(invoiceTransitionSchema), InvoiceController.finalize);
 router.patch('/:id/reopen', validateResource(reopenInvoiceSchema), InvoiceController.reopen);

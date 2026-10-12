@@ -37,6 +37,8 @@ export const getApiErrorMessage = (error: unknown) => {
   if (status === 403) return 'You are not authorized to perform this billing operation.';
   if (status === 500) return 'The server could not complete this billing operation. Please try again later.';
   if (normalizedMessage.includes('no completed trips')) return 'No completed trips are available for this firm, vehicle, and billing period.';
+  if (normalizedMessage.includes('no billing rule exists for vehicle capacity')) return `${rawMessage}. Open the contract's current version and add a capacity rate row matching this vehicle's capacity, then re-save the trip so it picks up the updated version.`;
+  if (normalizedMessage.includes('no km threshold matches')) return `${rawMessage}. The contract version's KM thresholds must include a final row with no upper limit to cover any distance.`;
   if (normalizedMessage.includes('contract version') || normalizedMessage.includes('no contract version')) return 'The selected trip is missing an applicable contract version. Check the contract setup before billing.';
   if (normalizedMessage.includes('active contract') || normalizedMessage.includes('contract is missing')) return 'The vehicle or firm does not have a valid active contract for this billing period.';
   if (normalizedMessage.includes('invoice already exists') || normalizedMessage.includes('already exists for this firm')) return 'An invoice already exists for this firm, vehicle, and billing period.';

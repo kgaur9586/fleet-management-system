@@ -10,8 +10,9 @@ const router = Router();
 
 const credentialLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: env.NODE_ENV === 'test' ? 0 : 10,
-  skip: () => env.NODE_ENV === 'test',
+  max: 10,
+  // Only enforced in production; disabled in dev/test so local testing isn't throttled.
+  skip: () => env.NODE_ENV !== 'production',
   message: 'Too many authentication attempts from this IP, please try again later.',
 });
 

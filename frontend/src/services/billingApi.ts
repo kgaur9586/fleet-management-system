@@ -90,6 +90,7 @@ export const billingApi = {
   approveInvoice: (id: string, notes?: string) => apiClient.patch<Invoice>(`/invoices/${id}/approve`, { notes }),
   finalizeInvoice: (id: string, notes?: string) => apiClient.patch<Invoice>(`/invoices/${id}/finalize`, { notes }),
   reopenInvoice: (id: string, reason: string) => apiClient.patch<Invoice>(`/invoices/${id}/reopen`, { reason }),
+  regenerateInvoice: (id: string) => apiClient.patch<Invoice>(`/invoices/${id}/regenerate`),
   getInvoiceHistory: (id: string) => apiClient.get<InvoiceAuditEntry[]>(`/invoices/${id}/history`),
   downloadInvoicePdf: (id: string) => apiClient.download(`/invoices/${id}/pdf`),
   getPaymentSummary: (query: Record<string, unknown> = {}) => apiClient.get<PaymentSummary>(`/payments/summary?${toQueryString(query)}`),

@@ -13,13 +13,15 @@ const app: Application = express();
 // Security middleware
 app.use(helmet());
 
-// Rate limiting
+// Rate limiting (production only; disabled in dev/test so local testing isn't throttled)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
   message: 'Too many requests from this IP, please try again later.',
 });
-app.use('/api', apiLimiter);
+if (env.NODE_ENV === 'production') {
+  app.use('/api', apiLimiter);
+}
 app.set('trust proxy', 1);
 
 // CORS middleware
@@ -55,6 +57,9 @@ import invoiceRoutes from './modules/invoices/invoice.routes';
 import paymentRoutes from './modules/payments/payment.routes';
 import vehicleDocumentRoutes from './modules/documents/vehicle-document.routes';
 import dashboardRoutes from './modules/dashboard/dashboard.routes';
+import driverAdvanceRoutes from './modules/driver-advances/driver-advance.routes';
+import salaryRoutes from './modules/salary/salary.routes';
+import hsdRateRoutes from './modules/hsd-rates/hsd-rate.routes';
 
 // API Routes will be registered here
 app.use('/api/v1/auth', authRoutes);
@@ -70,6 +75,9 @@ app.use('/api/v1/invoices', invoiceRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/documents', vehicleDocumentRoutes);
 app.use('/api/v1/dashboard', dashboardRoutes);
+app.use('/api/v1/driver-advances', driverAdvanceRoutes);
+app.use('/api/v1/salary', salaryRoutes);
+app.use('/api/v1/hsd-rates', hsdRateRoutes);
 
 // Handle 404
 app.use((req: Request, res: Response, next: NextFunction) => {

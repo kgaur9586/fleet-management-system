@@ -32,7 +32,7 @@ export function VehicleFormPage() {
       editing && id ? vehiclesApi.get(id) : Promise.resolve(null),
     ]).then(([firmPage, vehicle]) => {
       setFirms(firmPage.data);
-      if (vehicle) setForm({ registrationNumber: vehicle.registrationNumber, vehicleType: vehicle.vehicleType, capacity: vehicle.capacity, make: vehicle.make || '', vehicleModel: vehicle.vehicleModel || '', firmId: typeof vehicle.firmId === 'string' ? vehicle.firmId : vehicle.firmId?._id || '', status: vehicle.status, metadata: vehicle.metadata });
+      if (vehicle) setForm({ registrationNumber: vehicle.registrationNumber, vehicleType: vehicle.vehicleType, capacity: vehicle.capacity, make: vehicle.make || '', vehicleModel: vehicle.vehicleModel || '', firmId: typeof vehicle.firmId === 'string' ? vehicle.firmId : vehicle.firmId?._id || '', vehicleNumberPerFirm: vehicle.vehicleNumberPerFirm, status: vehicle.status, metadata: vehicle.metadata });
     }).catch((caught) => setError(getApiErrorMessage(caught))).finally(() => setLoading(false));
   }, [editing, id]);
 

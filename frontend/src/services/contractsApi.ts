@@ -10,6 +10,7 @@ export const contractsApi = {
   remove: (id: string) => apiClient.delete(`/contracts/${id}`),
   listVersions: (id: string) => apiClient.get<ContractVersion[]>(`/contracts/${id}/versions`),
   getVersion: (id: string, versionId: string) => apiClient.get<ContractVersion>(`/contracts/${id}/versions/${versionId}`),
+  deleteVersion: (id: string, versionId: string) => apiClient.delete(`/contracts/${id}/versions/${versionId}`),
   createVersion: (id: string, payload: ContractVersionPayload) => apiClient.post<ContractVersion>(`/contracts/${id}/versions`, payload),
   getEffectiveVersion: (id: string, date?: string) => apiClient.get<ContractVersion>(`/contracts/${id}/versions/effective?${toQueryString({ date })}`),
   getActiveVersion: (id: string) => apiClient.get<ContractVersion>(`/contracts/${id}/versions/active`),

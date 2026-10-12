@@ -2,11 +2,16 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export type AuditAction =
   | 'invoice.generated'
+  | 'invoice.regenerated'
   | 'invoice.approved'
   | 'invoice.finalized'
   | 'invoice.reopened'
   | 'payment.recorded'
-  | 'contract.version_created';
+  | 'contract.version_created'
+  | 'driver_advance.created'
+  | 'driver_advance.recovery_applied'
+  | 'salary.generated'
+  | 'salary.paid';
 
 export interface IAuditLog extends Document {
   action: AuditAction;

@@ -44,6 +44,15 @@ export class InvoiceController {
     }
   }
 
+  static async regenerate(req: Request, res: Response, next: NextFunction) {
+    try {
+      const invoice = await InvoiceService.regenerate(req.params.id as string, req.user?.id);
+      sendSuccess(res, 200, 'Invoice regenerated from current trip data', invoice);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async approve(req: Request, res: Response, next: NextFunction) {
     try {
       const invoice = await InvoiceService.approve(req.params.id as string, { notes: req.body.notes }, req.user?.id);

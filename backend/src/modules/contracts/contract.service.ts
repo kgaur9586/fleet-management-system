@@ -2,6 +2,7 @@ import { FilterQuery } from 'mongoose';
 import { ConflictError, NotFoundError } from '../../common/errors';
 import { ContractModel, IContract } from './contract.model';
 import { ContractVersionModel, IContractVersion } from './contract-version.model';
+import { TripModel } from '../trips/trip.model';
 
 interface ContractQueryOptions {
   page?: number;
@@ -96,6 +97,21 @@ export class ContractService {
     const version = await ContractVersionModel.findOne({ _id: versionId, contractId });
     if (!version) throw new NotFoundError('Contract version not found');
     return version;
+  }
+
+  /**
+   * Historical versions are normally never deleted (they preserve past bill calculations).
+   * This only permits removing a version that no trip has ever referenced, so mistaken or
+   * unused test versions can be cleaned up without risking any already-billed trip's history.
+   */
+  static async deleteVersion(contractId: string, versionId: string) {
+    const version = await this.getVersion(contractId, versionId);
+    const referencedByTrip = await TripModel.exists({ contractVersionId: versionId });
+    if (referencedByTrip) {
+      throw new ConflictError('This version is referenced by at least one trip and cannot be deleted');
+    }
+    await ContractVersionModel.deleteOne({ _id: version._id });
+    return true;
   }
 
   static async getEffectiveVersion(contractId: string, tripDate: Date) {

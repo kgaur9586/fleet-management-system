@@ -91,4 +91,31 @@ export interface VehicleDocument {
 }
 export interface VehicleDocumentQuery { vehicleId?: string; documentType?: VehicleDocumentType; status?: VehicleDocumentStatus; page?: number; limit?: number }
 
+export interface DriverAdvance {
+  _id: string; driverId: string | { _id: string; name: string; mobile: string };
+  amount: DecimalValue; outstandingAmount: DecimalValue; date: string; notes?: string;
+  createdAt: string; updatedAt: string;
+}
+export interface DriverAdvanceRecovery {
+  _id: string; advanceId: string; driverId: string; salaryRecordId: string;
+  amount: DecimalValue; date: string; notes?: string; createdAt: string;
+}
+export interface DriverAdvancePayload { driverId: string; amount: number; date?: string; notes?: string }
+
+export type SalaryPaymentStatus = 'pending' | 'paid';
+export type SalaryPaymentMode = 'cash' | 'bank_transfer' | 'cheque' | 'other';
+export interface SalaryRecord {
+  _id: string; driverId: string | { _id: string; name: string; mobile: string; dailyWage: DecimalValue };
+  month: number; year: number; daysWorked: number; dailyWageRate: DecimalValue;
+  grossWages: DecimalValue; advanceDeduction: DecimalValue; otherDeductions: DecimalValue; netPayable: DecimalValue;
+  paymentStatus: SalaryPaymentStatus; paidOn?: string; paymentMode?: SalaryPaymentMode; paymentReference?: string; notes?: string;
+  createdAt: string; updatedAt: string;
+}
+export interface SalaryDeductionResult { requested: number; applied: number; carriedForward: number; breakdown: Array<{ advanceId: string; amount: number; remainingOnAdvance: number }> }
+
+export interface HsdRate {
+  _id: string; ratePerLitre: DecimalValue; effectiveFrom: string; notes?: string; createdAt: string; updatedAt: string;
+}
+export interface HsdRatePayload { ratePerLitre: number; effectiveFrom: string; notes?: string }
+
 export type Page<T> = PaginatedData<T>;

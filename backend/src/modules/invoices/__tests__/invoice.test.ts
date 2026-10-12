@@ -10,6 +10,7 @@ import { DriverModel } from '../../drivers/driver.model';
 import { VehicleModel } from '../../vehicles/vehicle.model';
 import { TripModel } from '../../trips/trip.model';
 import { InvoiceModel } from '../invoice.model';
+import { HsdRateModel } from '../../hsd-rates/hsd-rate.model';
 import { hashPassword } from '../../../utils/hash';
 import { env } from '../../../config/env';
 
@@ -48,6 +49,7 @@ afterEach(async () => {
   await FirmModel.deleteMany({});
   await VehicleModel.deleteMany({});
   await DriverModel.deleteMany({});
+  await HsdRateModel.deleteMany({});
 });
 
 const rules = (fuelRatePerLitre: number) => ({
@@ -107,6 +109,34 @@ const createFirmAndVehicleDriverContract = async () => {
 };
 
 describe('Monthly invoice lifecycle and snapshot generation', () => {
+  it('prefers the global HSD rate over the contract version rate when one is configured for the trip date', async () => {
+    const { firm, vehicle, driver, contract, contractVersion } = await createFirmAndVehicleDriverContract();
+    await HsdRateModel.create({ ratePerLitre: 102.25, effectiveFrom: new Date('2026-02-01T00:00:00.000Z'), createdBy: new mongoose.Types.ObjectId() });
+
+    await TripModel.create({
+      tripDate: new Date('2026-02-10T00:00:00.000Z'),
+      vehicleId: vehicle._id,
+      driverId: driver._id,
+      firmId: firm._id,
+      contractId: contract._id,
+      contractVersionId: contractVersion._id,
+      pickupLocation: 'Factory',
+      dropLocation: 'Market',
+      totalKm: 120,
+      operationalStatus: 'completed',
+      toll: { amount: 0 },
+    });
+
+    const response = await request(app)
+      .post('/api/v1/invoices/generate')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ firmId: String(firm._id), vehicleId: String(vehicle._id), month: 2, year: 2026 });
+
+    expect(response.status).toBe(201);
+    // Contract version carries 95.81; the global rate (102.25) must win.
+    expect(response.body.data.lineItems[0].snapshot.fuelRate).toBe('102.25');
+  });
+
   it('generates a firm-month vehicle invoice from eligible trips and stores immutable snapshots', async () => {
     const { firm, vehicle, driver, contract, contractVersion } = await createFirmAndVehicleDriverContract();
 
@@ -283,6 +313,67 @@ describe('Monthly invoice lifecycle and snapshot generation', () => {
     expect(history.status).toBe(200);
     const actions = history.body.data.map((entry: { action: string }) => entry.action);
     expect(actions).toEqual(expect.arrayContaining(['invoice.generated', 'invoice.approved', 'invoice.finalized', 'invoice.reopened']));
+  });
+
+  it('lets a corrected trip flow into the bill after reopen + regenerate', async () => {
+    const { firm, vehicle, driver, contract, contractVersion } = await createFirmAndVehicleDriverContract();
+    const trip = await TripModel.create({
+      tripDate: new Date('2026-03-02T00:00:00.000Z'),
+      vehicleId: vehicle._id,
+      driverId: driver._id,
+      firmId: firm._id,
+      contractId: contract._id,
+      contractVersionId: contractVersion._id,
+      pickupLocation: 'Warehouse',
+      dropLocation: 'Customer',
+      totalKm: 150,
+      operationalStatus: 'completed',
+      toll: { amount: 300 },
+    });
+
+    const firmId = String((firm as any)._id);
+    const vehicleId = String((vehicle as any)._id);
+    const tripId = String((trip as any)._id);
+
+    const generated = await request(app)
+      .post('/api/v1/invoices/generate')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ firmId, vehicleId, month: 3, year: 2026 });
+    const invoiceId = generated.body.data._id;
+    const originalTotal = generated.body.data.summary.totalAmount;
+
+    await request(app).patch(`/api/v1/invoices/${invoiceId}/approve`).set('Authorization', `Bearer ${token}`).send({});
+    await request(app).patch(`/api/v1/invoices/${invoiceId}/finalize`).set('Authorization', `Bearer ${token}`).send({});
+
+    await request(app)
+      .patch(`/api/v1/invoices/${invoiceId}/reopen`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ reason: 'Toll amount was recorded incorrectly' });
+
+    // The trip must be unlinked by reopen, otherwise it can never be picked up again.
+    const unlinkedTrip = await TripModel.findById(tripId).lean();
+    expect(unlinkedTrip?.billingInvoiceId).toBeUndefined();
+
+    await request(app)
+      .patch(`/api/v1/trips/${tripId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ toll: { amount: 900 } });
+
+    const beforeRegenerate = await request(app)
+      .get(`/api/v1/invoices/${invoiceId}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(beforeRegenerate.body.data.summary.totalAmount).toBe(originalTotal);
+
+    const regenerated = await request(app)
+      .patch(`/api/v1/invoices/${invoiceId}/regenerate`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(regenerated.status).toBe(200);
+    expect(regenerated.body.data.summary.totalAmount).toBeGreaterThan(originalTotal);
+    expect(regenerated.body.data.lineItems[0].snapshot.tollAmount).toBe('900');
+
+    const relinkedTrip = await TripModel.findById(tripId).lean();
+    expect(String(relinkedTrip?.billingInvoiceId)).toBe(invoiceId);
   });
 
   it('rejects PDF downloads until the invoice is finalized', async () => {

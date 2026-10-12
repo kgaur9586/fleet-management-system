@@ -44,6 +44,10 @@ export class ContractController {
     try { sendSuccess(res, 200, 'Contract version retrieved successfully', await ContractService.getVersion(req.params.id as string, req.params.versionId as string)); } catch (error) { next(error); }
   }
 
+  static async deleteVersion(req: Request, res: Response, next: NextFunction) {
+    try { await ContractService.deleteVersion(req.params.id as string, req.params.versionId as string); sendSuccess(res, 200, 'Contract version deleted successfully'); } catch (error) { next(error); }
+  }
+
   static async getEffectiveVersion(req: Request, res: Response, next: NextFunction) {
     try {
       const date = req.query.date ? new Date(req.query.date as string) : new Date();

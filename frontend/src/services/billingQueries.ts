@@ -53,3 +53,7 @@ export const useReopenInvoiceMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({ mutationFn: ({ id, reason }: { id: string; reason: string }) => billingApi.reopenInvoice(id, reason), onSuccess: (invoice: Invoice) => { queryClient.setQueryData(billingKeys.invoice(invoice._id), invoice); queryClient.setQueryData(billingKeys.preview(invoice._id), invoice); void invalidateBilling(queryClient); } });
 };
+export const useRegenerateInvoiceMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({ mutationFn: (id: string) => billingApi.regenerateInvoice(id), onSuccess: (invoice: Invoice) => { queryClient.setQueryData(billingKeys.invoice(invoice._id), invoice); queryClient.setQueryData(billingKeys.preview(invoice._id), invoice); void invalidateBilling(queryClient); } });
+};
