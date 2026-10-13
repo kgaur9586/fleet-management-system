@@ -23,6 +23,7 @@ router.get('/:id/versions/active', validateResource(getContractSchema), Contract
 router.post('/:id/versions', validateResource(createVersionSchema), ContractController.createVersion);
 router.get('/:id/versions', validateResource(getContractSchema), ContractController.listVersions);
 router.get('/:id/versions/:versionId', validateResource(versionIdSchema), ContractController.getVersion);
+router.delete('/:id/versions/:versionId', validateResource(versionIdSchema), ContractController.deleteVersion);
 router.get('/:id', validateResource(getContractSchema), ContractController.getById);
 router.patch('/:id', validateResource(updateContractSchema), ContractController.update);
 router.delete('/:id', validateResource(getContractSchema), ContractController.delete);

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 import { AppError } from '../common/errors';
+import { BillingRuleConfigurationError } from '../modules/billing/billing-engine';
 import { sendError } from '../common/response';
 import { logger } from '../config/logger';
 
@@ -26,6 +27,12 @@ export const errorHandler = (
       logger.warn(`[Operational Error] ${err.message}`);
     }
     return sendError(res, err.statusCode, err.message);
+  }
+
+  // A missing capacity/KM rule is a data configuration problem, not a server fault.
+  if (err instanceof BillingRuleConfigurationError) {
+    logger.warn(`[Billing Configuration Error] ${err.message}`);
+    return sendError(res, 422, err.message);
   }
 
   // Handle Mongoose duplicate key error

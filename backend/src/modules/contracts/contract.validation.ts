@@ -62,6 +62,11 @@ export const billingRulesSchema = z
         context.addIssue({ code: 'custom', path: ['kmThresholds', index], message: 'An unlimited KM threshold must be last' });
       }
     });
+    // Without a final unlimited row, any distance beyond the last boundary has no matching rule.
+    const lastThreshold = rules.kmThresholds[rules.kmThresholds.length - 1];
+    if (lastThreshold && lastThreshold.upToKm !== undefined) {
+      context.addIssue({ code: 'custom', path: ['kmThresholds', rules.kmThresholds.length - 1], message: 'The last KM threshold must be unlimited (leave "Up to KM" blank) so every distance is covered' });
+    }
 
     rules.capacityRates.forEach((rate, rateIndex) => {
       let previousMaximum = -1;

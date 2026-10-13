@@ -55,9 +55,10 @@ test('returns operational, financial, vehicle, and document alert metrics for a 
   });
   await PaymentModel.create({ invoiceId: invoice._id, firmId: firm._id, amount: 400, paymentDate: new Date('2026-09-15'), paymentMethod: 'bank_transfer', status: 'received', createdBy: new mongoose.Types.ObjectId() });
   await ExpenseModel.create({ category: 'maintenance', date: new Date('2026-09-12'), amount: 250, vehicle: vehicle._id, description: 'Dashboard repair', createdBy: new mongoose.Types.ObjectId() });
-  await VehicleDocumentModel.create({ vehicleId: vehicle._id, documentType: 'insurance', issueDate: new Date('2026-01-01'), expiryDate: new Date('2026-10-01'), fileReference: 's3/insurance.pdf', createdBy: new mongoose.Types.ObjectId() });
-  await VehicleDocumentModel.create({ vehicleId: inactiveVehicle._id, documentType: 'permit', expiryDate: new Date('2026-08-01'), createdBy: new mongoose.Types.ObjectId() });
-  await TripModel.create({ tripDate: new Date(), vehicleId: vehicle._id, driverId: driver._id, firmId: firm._id, contractId: new mongoose.Types.ObjectId(), contractVersionId: new mongoose.Types.ObjectId(), pickupLocation: 'A', dropLocation: 'B', totalKm: 100, operationalStatus: 'completed', toll: { amount: 0 } });
+  await VehicleDocumentModel.create({ vehicleId: vehicle._id, documentType: 'insurance', issueDate: new Date('2026-01-01'), expiryDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000), fileReference: 's3/insurance.pdf', createdBy: new mongoose.Types.ObjectId() });
+  await VehicleDocumentModel.create({ vehicleId: inactiveVehicle._id, documentType: 'permit', expiryDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), createdBy: new mongoose.Types.ObjectId() });
+  // tripsThisMonth is scoped to the queried billing month/year, not the real calendar date.
+  await TripModel.create({ tripDate: new Date('2026-09-20'), vehicleId: vehicle._id, driverId: driver._id, firmId: firm._id, contractId: new mongoose.Types.ObjectId(), contractVersionId: new mongoose.Types.ObjectId(), pickupLocation: 'A', dropLocation: 'B', totalKm: 100, operationalStatus: 'completed', toll: { amount: 0 } });
 
   const response = await request(app).get('/api/v1/dashboard').query({ month: 9, year: 2026 }).set('Authorization', `Bearer ${token}`);
 

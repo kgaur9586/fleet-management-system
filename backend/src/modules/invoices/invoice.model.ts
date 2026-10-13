@@ -2,6 +2,9 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export type InvoiceStatus = 'draft' | 'review' | 'approved' | 'finalized';
 
+/** Settlement state is tracked separately from the approval lifecycle. */
+export type InvoicePaymentStatus = 'unpaid' | 'partially_paid' | 'paid';
+
 export interface IInvoiceCalculationSnapshot {
   tripId?: string;
   distanceKm: string;
@@ -65,6 +68,8 @@ export interface IInvoice extends Document {
   month: number;
   year: number;
   invoiceNumber?: string;
+  /** Manual register reference printed alongside the bill number. */
+  bookNumber?: string;
   status: InvoiceStatus;
   generatedBy: mongoose.Types.ObjectId;
   approvedBy?: mongoose.Types.ObjectId;
@@ -85,8 +90,17 @@ export interface IInvoice extends Document {
   firmSnapshot: {
     name: string;
     billingName?: string;
+    billPrefix?: string;
     address?: string;
+    phone?: string;
     gstNumber?: string;
+    bankDetails?: {
+      accountName?: string;
+      accountNumber?: string;
+      ifscCode?: string;
+      bankName?: string;
+      branchName?: string;
+    };
   };
   vehicleSnapshot: {
     registrationNumber: string;
@@ -110,6 +124,16 @@ export interface IInvoice extends Document {
     hash: string;
     generatedAt: Date;
   };
+  reopenHistory?: Array<{
+    reopenedAt: Date;
+    reopenedBy?: mongoose.Types.ObjectId;
+    reason: string;
+    previousStatus: InvoiceStatus;
+    previousInvoiceNumber?: string;
+  }>;
+  paymentStatus: InvoicePaymentStatus;
+  totalPaid: number;
+  outstandingAmount: number;
   isDeleted: boolean;
   deletedAt?: Date;
   deletedReason?: string;
@@ -140,6 +164,7 @@ const invoiceSchema = new Schema<IInvoice>(
     month: { type: Number, required: true, min: 1, max: 12 },
     year: { type: Number, required: true, min: 2000 },
     invoiceNumber: { type: String, trim: true, unique: true, sparse: true },
+    bookNumber: { type: String, trim: true },
     status: {
       type: String,
       enum: ['draft', 'review', 'approved', 'finalized'],
@@ -175,6 +200,29 @@ const invoiceSchema = new Schema<IInvoice>(
       hash: { type: String, trim: true },
       generatedAt: { type: Date, default: Date.now },
     },
+    paymentStatus: {
+      type: String,
+      enum: ['unpaid', 'partially_paid', 'paid'],
+      default: 'unpaid',
+      index: true,
+    },
+    reopenHistory: {
+      type: [
+        new Schema(
+          {
+            reopenedAt: { type: Date, required: true },
+            reopenedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+            reason: { type: String, required: true, trim: true },
+            previousStatus: { type: String, required: true },
+            previousInvoiceNumber: { type: String, trim: true },
+          },
+          { _id: false }
+        ),
+      ],
+      default: [],
+    },
+    totalPaid: { type: Number, default: 0, min: 0 },
+    outstandingAmount: { type: Number, default: 0, min: 0 },
     isDeleted: { type: Boolean, default: false, index: true },
     deletedAt: { type: Date },
     deletedReason: { type: String, trim: true },
@@ -185,5 +233,6 @@ const invoiceSchema = new Schema<IInvoice>(
 invoiceSchema.index({ firmId: 1, vehicleId: 1, month: 1, year: 1 }, { unique: true, sparse: true });
 invoiceSchema.index({ firmId: 1, month: 1, year: 1, status: 1 });
 invoiceSchema.index({ isDeleted: 1, status: 1, year: 1, month: 1 });
+invoiceSchema.index({ status: 1, paymentStatus: 1, outstandingAmount: -1 });
 
 export const InvoiceModel = mongoose.model<IInvoice>('Invoice', invoiceSchema);

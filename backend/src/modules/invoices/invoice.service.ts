@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { FilterQuery } from 'mongoose';
 import { BadRequestError, ConflictError, NotFoundError } from '../../common/errors';
+import { withTransaction } from '../../common/transaction';
 import { ContractModel } from '../contracts/contract.model';
 import { ContractVersionModel } from '../contracts/contract-version.model';
 import { VehicleModel } from '../vehicles/vehicle.model';
@@ -8,9 +9,13 @@ import { FirmModel } from '../firms/firm.model';
 import { DriverModel } from '../drivers/driver.model';
 import { RouteModel } from '../routes/route.model';
 import { TripModel } from '../trips/trip.model';
+import { CompanyModel } from '../companies/company.model';
+import { HsdRateService } from '../hsd-rates/hsd-rate.service';
+import { AuditService } from '../audit/audit.service';
 import { calculateTripBilling } from '../billing/billing-engine';
 import { InvoiceModel, IInvoice } from './invoice.model';
 import { invoiceCompanySnapshot } from './invoice.config';
+import { buildBillNumber } from './invoice.numbering';
 import { renderFinalizedInvoicePdf } from './invoice.pdf';
 
 interface InvoiceGenerateInput {
@@ -19,6 +24,7 @@ interface InvoiceGenerateInput {
   month: number;
   year: number;
   notes?: string;
+  bookNumber?: string;
 }
 
 interface InvoiceUpdateInput {
@@ -41,38 +47,14 @@ const toDateRange = (year: number, month: number) => ({
 
 const escapeRegex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+const joinAddress = (address?: { street?: string; city?: string; state?: string; pinCode?: string } | null) =>
+  address ? [address.street, address.city, address.state, address.pinCode].filter(Boolean).join(', ') || undefined : undefined;
+
 export class InvoiceService {
-  static async generate(data: InvoiceGenerateInput, generatedBy?: string) {
-    if (!generatedBy) throw new BadRequestError('User context is required to generate an invoice');
-
-    const { firmId, vehicleId, month, year } = data;
-    const existing = await InvoiceModel.findOne({ firmId, vehicleId, month, year, isDeleted: false });
-    if (existing) {
-      throw new ConflictError('An invoice already exists for this firm, vehicle, and billing month');
-    }
-
-    const start = toDateRange(year, month);
-    const firm = await FirmModel.findOne({ _id: firmId, isDeleted: false }).lean();
-    if (!firm) throw new NotFoundError('Firm not found');
-
-    const selectedVehicle = await VehicleModel.findOne({ _id: vehicleId, isDeleted: false }).lean();
-    if (!selectedVehicle) throw new NotFoundError('Vehicle not found');
-
-    const trips = await TripModel.find({
-      firmId,
-      vehicleId,
-      tripDate: start,
-      operationalStatus: 'completed',
-      isDeleted: false,
-      billingInvoiceId: { $exists: false },
-    }).sort({ tripDate: 1 });
-
-    if (!trips.length) {
-      throw new NotFoundError('No completed trips found for the selected firm, vehicle, and month');
-    }
-
+  /** Shared by generate() and regenerate(): turns a set of completed trips into billed line items. */
+  private static async buildLineItemsFromTrips(trips: InstanceType<typeof TripModel>[]) {
     const lineItems: any[] = [];
-    let summary = {
+    const summary = {
       vehicleCount: 1,
       tripCount: 0,
       totalDistanceKm: 0,
@@ -96,7 +78,7 @@ export class InvoiceService {
         throw new NotFoundError('Trip references are incomplete or deleted');
       }
 
-      const billingRate = normalizeDecimal((version as any).billingRules?.fuelRatePerLitre);
+      const billingRate = (await HsdRateService.resolveRateForDate(trip.tripDate)) ?? normalizeDecimal((version as any).billingRules?.fuelRatePerLitre);
       const tollAmount = trip.toll && trip.toll.amount ? normalizeDecimal((trip.toll as any).amount) : 0;
 
       const result = calculateTripBilling(
@@ -115,7 +97,7 @@ export class InvoiceService {
         billingRate
       );
 
-      const lineItem = {
+      lineItems.push({
         tripId: trip._id,
         vehicleId: trip.vehicleId,
         driverId: trip.driverId,
@@ -145,9 +127,7 @@ export class InvoiceService {
         },
         snapshot: result,
         createdAt: new Date(),
-      };
-
-      lineItems.push(lineItem);
+      });
 
       summary.tripCount += 1;
       summary.totalDistanceKm += Number(result.distanceKm || 0);
@@ -158,42 +138,160 @@ export class InvoiceService {
       summary.totalAmount += Number(result.totalAmount || 0);
     }
 
-    const tripIds = trips.map((trip) => String(trip._id));
-    const invoice = await InvoiceModel.create({
+    return { lineItems, summary };
+  }
+
+  static async generate(data: InvoiceGenerateInput, generatedBy?: string) {
+    if (!generatedBy) throw new BadRequestError('User context is required to generate an invoice');
+
+    const { firmId, vehicleId, month, year } = data;
+    const existing = await InvoiceModel.findOne({ firmId, vehicleId, month, year, isDeleted: false });
+    if (existing) {
+      throw new ConflictError('An invoice already exists for this firm, vehicle, and billing month');
+    }
+
+    const start = toDateRange(year, month);
+    const firm = await FirmModel.findOne({ _id: firmId, isDeleted: false }).lean();
+    if (!firm) throw new NotFoundError('Firm not found');
+
+    const selectedVehicle = await VehicleModel.findOne({ _id: vehicleId, isDeleted: false }).lean();
+    if (!selectedVehicle) throw new NotFoundError('Vehicle not found');
+
+    const trips = await TripModel.find({
       firmId,
       vehicleId,
-      month,
-      year,
-      invoiceNumber: `INV-${year}${String(month).padStart(2, '0')}-${String(firmId).slice(-6)}-${String(vehicleId).slice(-6)}`,
-      generatedBy,
-      notes: data.notes,
-      status: 'draft',
-      companySnapshot: invoiceCompanySnapshot,
-      firmSnapshot: {
-        name: firm.name,
-        billingName: firm.billingName,
-        address: firm.address ? [firm.address.street, firm.address.city, firm.address.state, firm.address.pinCode].filter(Boolean).join(', ') : undefined,
-        gstNumber: firm.gstNumber,
-      },
-      vehicleSnapshot: {
-        registrationNumber: selectedVehicle.registrationNumber,
-        vehicleType: selectedVehicle.vehicleType,
-        capacity: selectedVehicle.capacity,
-      },
-      generatedAt: new Date(),
-      lineItems,
-      summary,
-      duplicateTripGuard: {
-        tripCount: tripIds.length,
-        tripIds,
-        hash: crypto.createHash('sha256').update(tripIds.sort().join(',')).digest('hex'),
-        generatedAt: new Date(),
-      },
+      tripDate: start,
+      operationalStatus: 'completed',
+      isDeleted: false,
+      billingInvoiceId: { $exists: false },
+    }).sort({ tripDate: 1 });
+
+    if (!trips.length) {
+      throw new NotFoundError('No completed trips found for the selected firm, vehicle, and month');
+    }
+
+    const { lineItems, summary } = await this.buildLineItemsFromTrips(trips);
+
+    const tripIds = trips.map((trip) => String(trip._id));
+    const companySnapshot = await this.resolveCompanySnapshot(firm.companyId ? String(firm.companyId) : undefined);
+    const invoiceId = await withTransaction(async (session) => {
+      const [created] = await InvoiceModel.create(
+        [
+          {
+            firmId,
+            vehicleId,
+            month,
+            year,
+            generatedBy,
+            notes: data.notes,
+            status: 'draft',
+            bookNumber: data.bookNumber,
+            companySnapshot,
+            firmSnapshot: {
+              name: firm.name,
+              billingName: firm.billingName,
+              billPrefix: firm.billPrefix,
+              address: joinAddress(firm.address),
+              phone: firm.contactDetails?.mobile,
+              gstNumber: firm.gstNumber,
+              bankDetails: firm.bankDetails,
+            },
+            vehicleSnapshot: {
+              registrationNumber: selectedVehicle.registrationNumber,
+              vehicleType: selectedVehicle.vehicleType,
+              capacity: selectedVehicle.capacity,
+            },
+            generatedAt: new Date(),
+            lineItems,
+            summary,
+            paymentStatus: 'unpaid',
+            totalPaid: 0,
+            outstandingAmount: 0,
+            duplicateTripGuard: {
+              tripCount: tripIds.length,
+              tripIds,
+              hash: crypto.createHash('sha256').update([...tripIds].sort().join(',')).digest('hex'),
+              generatedAt: new Date(),
+            },
+          },
+        ],
+        { session }
+      );
+
+      await TripModel.updateMany(
+        { _id: { $in: trips.map((trip) => trip._id) }, billingInvoiceId: { $exists: false } },
+        { $set: { billingInvoiceId: created._id } },
+        { session }
+      );
+
+      return created._id;
     });
 
-    await TripModel.updateMany({ _id: { $in: trips.map((trip) => trip._id) } }, { $set: { billingInvoiceId: invoice._id } });
+    await AuditService.record({
+      action: 'invoice.generated',
+      entityType: 'invoice',
+      entityId: invoiceId as any,
+      userId: generatedBy,
+      changes: { after: { tripCount: tripIds.length, grandTotal: summary.totalAmount } },
+    });
 
-    return InvoiceModel.findById(invoice._id).populate('firmId', 'name billingName').populate('vehicleId', 'registrationNumber capacity');
+    return InvoiceModel.findById(invoiceId).populate('firmId', 'name billingName').populate('vehicleId', 'registrationNumber capacity');
+  }
+
+  /**
+   * Rebuilds a draft invoice's line items from its firm/vehicle/month's currently eligible trips.
+   * Use after editing or adding trips post-generation (typically following a reopen).
+   */
+  static async regenerate(id: string, regeneratedBy?: string) {
+    const invoice = await this.requireInvoice(id);
+    if (invoice.status !== 'draft') {
+      throw new ConflictError('Only draft invoices can be regenerated; reopen a finalized invoice first');
+    }
+
+    const trips = await TripModel.find({
+      firmId: invoice.firmId,
+      vehicleId: invoice.vehicleId,
+      tripDate: toDateRange(invoice.year, invoice.month),
+      operationalStatus: 'completed',
+      isDeleted: false,
+      billingInvoiceId: { $exists: false },
+    }).sort({ tripDate: 1 });
+
+    if (!trips.length) {
+      throw new NotFoundError('No completed, unbilled trips found for this firm, vehicle, and month');
+    }
+
+    const { lineItems, summary } = await this.buildLineItemsFromTrips(trips);
+    const tripIds = trips.map((trip) => String(trip._id));
+
+    await withTransaction(async (session) => {
+      invoice.lineItems = lineItems;
+      invoice.summary = summary as any;
+      invoice.duplicateTripGuard = {
+        tripCount: tripIds.length,
+        tripIds,
+        hash: crypto.createHash('sha256').update([...tripIds].sort().join(',')).digest('hex'),
+        generatedAt: new Date(),
+      };
+      invoice.generatedAt = new Date();
+      await invoice.save({ session });
+
+      await TripModel.updateMany(
+        { _id: { $in: trips.map((trip) => trip._id) }, billingInvoiceId: { $exists: false } },
+        { $set: { billingInvoiceId: invoice._id } },
+        { session }
+      );
+    });
+
+    await AuditService.record({
+      action: 'invoice.regenerated',
+      entityType: 'invoice',
+      entityId: invoice._id as any,
+      userId: regeneratedBy,
+      changes: { after: { tripCount: tripIds.length, grandTotal: summary.totalAmount } },
+    });
+
+    return InvoiceModel.findById(id).populate('firmId', 'name billingName').populate('vehicleId', 'registrationNumber capacity');
   }
 
   static async list(options: { page?: number; limit?: number; search?: string; firmId?: string; vehicleId?: string; status?: IInvoice['status']; month?: number; year?: number; }) {
@@ -245,7 +343,14 @@ export class InvoiceService {
     invoice.approvedBy = approvedBy as any;
     invoice.approvedAt = new Date();
     invoice.approvalNotes = data.notes;
-    return invoice.save();
+    const approved = await invoice.save();
+    await AuditService.record({
+      action: 'invoice.approved',
+      entityType: 'invoice',
+      entityId: invoice._id as any,
+      userId: approvedBy,
+    });
+    return approved;
   }
 
   static async finalize(id: string, data: InvoiceUpdateInput, finalizedBy?: string) {
@@ -254,11 +359,96 @@ export class InvoiceService {
       throw new ConflictError('Only approved invoices can be finalized');
     }
 
+    invoice.invoiceNumber = invoice.invoiceNumber ?? (await this.issueBillNumber(invoice));
     invoice.status = 'finalized';
     invoice.finalizedBy = finalizedBy as any;
     invoice.finalizedAt = new Date();
     invoice.finalizationNotes = data.notes;
-    return invoice.save();
+    invoice.totalPaid = invoice.totalPaid ?? 0;
+    invoice.outstandingAmount = Math.max(0, invoice.summary.totalAmount - invoice.totalPaid);
+    invoice.paymentStatus = invoice.outstandingAmount === 0 ? 'paid' : invoice.totalPaid > 0 ? 'partially_paid' : 'unpaid';
+    const finalized = await invoice.save();
+    await AuditService.record({
+      action: 'invoice.finalized',
+      entityType: 'invoice',
+      entityId: invoice._id as any,
+      userId: finalizedBy,
+      changes: { after: { invoiceNumber: invoice.invoiceNumber, grandTotal: invoice.summary.totalAmount } },
+    });
+    return finalized;
+  }
+
+  /**
+   * Returns a finalized invoice to draft so its trips can be corrected.
+   * The bill number is retained in history; settled invoices cannot be reopened.
+   */
+  static async reopen(id: string, reason: string, reopenedBy?: string) {
+    const invoice = await this.requireInvoice(id);
+    if (invoice.status !== 'finalized') {
+      throw new ConflictError('Only finalized invoices can be reopened');
+    }
+    if ((invoice.totalPaid ?? 0) > 0) {
+      throw new ConflictError('This invoice has recorded payments; reverse them before reopening');
+    }
+
+    const previousStatus = invoice.status;
+    const previousInvoiceNumber = invoice.invoiceNumber;
+
+    invoice.reopenHistory = [
+      ...(invoice.reopenHistory ?? []),
+      { reopenedAt: new Date(), reopenedBy: reopenedBy as any, reason, previousStatus, previousInvoiceNumber },
+    ];
+    invoice.status = 'draft';
+    invoice.finalizedAt = undefined;
+    invoice.finalizedBy = undefined;
+    invoice.approvedAt = undefined;
+    invoice.approvedBy = undefined;
+    invoice.outstandingAmount = 0;
+    invoice.paymentStatus = 'unpaid';
+
+    // Unlink the invoice's trips so edits (or a fresh regenerate) can pick them back up.
+    const reopened = await withTransaction(async (session) => {
+      await TripModel.updateMany({ billingInvoiceId: invoice._id }, { $unset: { billingInvoiceId: '' } }, { session });
+      return invoice.save({ session });
+    });
+    await AuditService.record({
+      action: 'invoice.reopened',
+      entityType: 'invoice',
+      entityId: invoice._id as any,
+      userId: reopenedBy,
+      reason,
+      changes: { before: { status: previousStatus, invoiceNumber: previousInvoiceNumber }, after: { status: 'draft' } },
+    });
+    return reopened;
+  }
+
+  static async history(id: string) {
+    await this.requireInvoice(id);
+    return AuditService.listForEntity('invoice', id);
+  }
+
+  /** Bill numbers are only issued at finalization, per the agreed billing workflow. */
+  private static async issueBillNumber(invoice: IInvoice) {
+    const [firm, vehicle] = await Promise.all([
+      FirmModel.findById(invoice.firmId).select('billPrefix name').lean(),
+      VehicleModel.findById(invoice.vehicleId).select('vehicleNumberPerFirm registrationNumber').lean(),
+    ]);
+
+    if (!firm?.billPrefix) {
+      throw new ConflictError(`Firm "${firm?.name ?? invoice.firmId}" has no bill prefix configured; set one before finalizing`);
+    }
+    if (!vehicle?.vehicleNumberPerFirm) {
+      throw new ConflictError(
+        `Vehicle "${vehicle?.registrationNumber ?? invoice.vehicleId}" has no firm vehicle number configured; set one before finalizing`
+      );
+    }
+
+    return buildBillNumber({
+      billPrefix: firm.billPrefix,
+      month: invoice.month,
+      year: invoice.year,
+      vehicleNumberPerFirm: vehicle.vehicleNumberPerFirm,
+    });
   }
 
   static async getFinalizedPdf(id: string) {
@@ -269,6 +459,20 @@ export class InvoiceService {
     return {
       invoice,
       content: await renderFinalizedInvoicePdf(invoice),
+    };
+  }
+
+  /** The factory receiving the bill; falls back to env config for firms not yet linked to a company. */
+  private static async resolveCompanySnapshot(companyId?: string) {
+    if (!companyId) return invoiceCompanySnapshot;
+    const company = await CompanyModel.findOne({ _id: companyId, isDeleted: false }).lean();
+    if (!company) return invoiceCompanySnapshot;
+    return {
+      name: company.legalName || company.name,
+      address: joinAddress(company.address),
+      phone: company.contactDetails?.mobile,
+      email: company.contactDetails?.email,
+      taxId: company.gstNumber,
     };
   }
 

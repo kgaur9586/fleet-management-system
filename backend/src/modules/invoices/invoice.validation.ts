@@ -12,6 +12,16 @@ export const generateInvoiceSchema = z.object({
     month: z.number().int().min(1).max(12),
     year: z.number().int().min(2000),
     notes: z.string().trim().optional(),
+    bookNumber: z.string().trim().max(40).optional(),
+  }),
+});
+
+export const reopenInvoiceSchema = z.object({
+  params: z.object({
+    id: objectIdSchema,
+  }),
+  body: z.object({
+    reason: z.string().trim().min(5, 'A reason of at least 5 characters is required to reopen a bill'),
   }),
 });
 

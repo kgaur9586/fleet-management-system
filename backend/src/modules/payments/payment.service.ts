@@ -1,7 +1,10 @@
-import { FilterQuery } from 'mongoose';
+import { ClientSession, FilterQuery, Types } from 'mongoose';
 import { ConflictError, NotFoundError } from '../../common/errors';
+import { withTransaction } from '../../common/transaction';
 import { InvoiceModel, IInvoice } from '../invoices/invoice.model';
 import { PaymentModel, IPayment } from './payment.model';
+
+const round2 = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
 interface CreatePaymentInput {
   invoiceId: string;
@@ -38,11 +41,30 @@ export class PaymentService {
 
     const paymentStatus = data.status ?? 'received';
     const received = await this.getReceivedAmount(String(invoice._id));
-    if (paymentStatus === 'received' && received + data.amount > invoice.summary.totalAmount) {
+    if (paymentStatus === 'received' && round2(received + data.amount) > round2(invoice.summary.totalAmount)) {
       throw new ConflictError('Payment exceeds the invoice outstanding amount');
     }
 
-    return PaymentModel.create({ ...data, status: paymentStatus });
+    return withTransaction(async (session) => {
+      const [payment] = await PaymentModel.create([{ ...data, status: paymentStatus }], { session });
+      await this.syncInvoiceSettlement(String(invoice._id), session);
+      return payment;
+    });
+  }
+
+  /** Recomputes the invoice's denormalised settlement fields from its received payments. */
+  private static async syncInvoiceSettlement(invoiceId: string, session?: ClientSession) {
+    const invoice = await InvoiceModel.findById(invoiceId).session(session ?? null);
+    if (!invoice) throw new NotFoundError('Invoice not found');
+
+    const totalPaid = round2(await this.getReceivedAmount(invoiceId, session));
+    const outstandingAmount = Math.max(0, round2(invoice.summary.totalAmount - totalPaid));
+
+    invoice.totalPaid = totalPaid;
+    invoice.outstandingAmount = outstandingAmount;
+    invoice.paymentStatus = outstandingAmount === 0 && totalPaid > 0 ? 'paid' : totalPaid > 0 ? 'partially_paid' : 'unpaid';
+    await invoice.save({ session });
+    return invoice;
   }
 
   static async list(options: PaymentQuery) {
@@ -77,33 +99,33 @@ export class PaymentService {
     if (options.month) invoiceQuery.month = options.month;
     if (options.year) invoiceQuery.year = options.year;
 
-    const invoices = await InvoiceModel.find(invoiceQuery).select('_id summary.totalAmount');
+    const invoices = await InvoiceModel.find(invoiceQuery).select('_id summary.totalAmount totalPaid outstandingAmount');
     const invoiceIds = invoices.map((invoice) => invoice._id);
-    const paymentQuery: FilterQuery<IPayment> = { invoiceId: { $in: invoiceIds }, status: 'received' };
-    const [payments, history] = await Promise.all([
-      PaymentModel.find(paymentQuery).select('amount'),
-      PaymentModel.find({ invoiceId: { $in: invoiceIds } }).sort({ paymentDate: -1, createdAt: -1 }).populate('invoiceId', 'invoiceNumber month year'),
-    ]);
+    const history = await PaymentModel.find({ invoiceId: { $in: invoiceIds } })
+      .sort({ paymentDate: -1, createdAt: -1 })
+      .populate('invoiceId', 'invoiceNumber month year');
 
     const totalInvoiced = invoices.reduce((total, invoice) => total + Number(invoice.summary.totalAmount || 0), 0);
-    const totalReceived = payments.reduce((total, payment) => total + Number(payment.amount || 0), 0);
+    const totalReceived = invoices.reduce((total, invoice) => total + Number(invoice.totalPaid || 0), 0);
+    const outstandingAmount = invoices.reduce((total, invoice) => total + Number(invoice.outstandingAmount || 0), 0);
 
     return {
       firmId: options.firmId,
       month: options.month,
       year: options.year,
-      totalInvoiced,
-      totalReceived,
-      outstandingAmount: Math.max(0, totalInvoiced - totalReceived),
+      totalInvoiced: round2(totalInvoiced),
+      totalReceived: round2(totalReceived),
+      outstandingAmount: round2(outstandingAmount),
       paymentHistory: history,
     };
   }
 
-  private static async getReceivedAmount(invoiceId: string) {
+  // Aggregation does not cast strings to ObjectId, so the id must be converted explicitly.
+  private static async getReceivedAmount(invoiceId: string, session?: ClientSession) {
     const result = await PaymentModel.aggregate([
-      { $match: { invoiceId, status: 'received' } },
+      { $match: { invoiceId: new Types.ObjectId(invoiceId), status: 'received' } },
       { $group: { _id: null, total: { $sum: '$amount' } } },
-    ]);
+    ]).session(session ?? null);
     return Number(result[0]?.total || 0);
   }
 }

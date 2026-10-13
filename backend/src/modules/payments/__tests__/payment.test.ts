@@ -71,9 +71,8 @@ const createFinalizedInvoice = async () => {
 };
 
 describe('Customer payment tracking', () => {
-  it('records a payment, reports received and outstanding totals, and does not modify the invoice', async () => {
+  it('records a payment, reports received and outstanding totals, and reconciles the invoice', async () => {
     const { firm, invoice } = await createFinalizedInvoice();
-    const before = JSON.stringify((await InvoiceModel.findById(invoice._id).lean()));
 
     const createResponse = await request(app)
       .post('/api/v1/payments')
@@ -112,8 +111,37 @@ describe('Customer payment tracking', () => {
     expect(historyResponse.body.data.data).toHaveLength(1);
     expect(historyResponse.body.data.data[0].paymentMethod).toBe('bank_transfer');
 
-    const after = JSON.stringify((await InvoiceModel.findById(invoice._id).lean()));
-    expect(after).toBe(before);
+    const after = await InvoiceModel.findById(invoice._id).lean();
+    expect(after?.totalPaid).toBe(3000);
+    expect(after?.outstandingAmount).toBe(5500);
+    expect(after?.paymentStatus).toBe('partially_paid');
+  });
+
+  it('blocks payments that cumulatively exceed the invoice total', async () => {
+    const { firm, invoice } = await createFinalizedInvoice();
+    const post = (amount: number) =>
+      request(app)
+        .post('/api/v1/payments')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          invoiceId: String(invoice._id),
+          firmId: String(firm._id),
+          amount,
+          paymentDate: '2026-03-10',
+          paymentMethod: 'cash',
+          status: 'received',
+        });
+
+    expect((await post(5000)).status).toBe(201);
+    expect((await post(3500)).status).toBe(201);
+
+    const overpayment = await post(1);
+    expect(overpayment.status).toBe(409);
+
+    const settled = await InvoiceModel.findById(invoice._id).lean();
+    expect(settled?.totalPaid).toBe(8500);
+    expect(settled?.outstandingAmount).toBe(0);
+    expect(settled?.paymentStatus).toBe('paid');
   });
 
   it('rejects payments against non-finalized invoices and overpayments', async () => {

@@ -1,7 +1,14 @@
+import crypto from 'crypto';
 import { UserModel } from './auth.model';
 import { hashPassword, comparePasswords } from '../../utils/hash';
 import { generateToken } from '../../utils/jwt';
-import { UnauthorizedError, ConflictError, BadRequestError } from '../../common/errors';
+import { UnauthorizedError, ConflictError, BadRequestError, ForbiddenError } from '../../common/errors';
+
+const secretsMatch = (provided: string, expected: string) => {
+  const a = Buffer.from(provided);
+  const b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+};
 
 export class AuthService {
   static async login(email: string, password: string) {
@@ -50,9 +57,12 @@ export class AuthService {
     email: string,
     password: string,
     adminSecret: string,
-    expectedSecret: string
+    expectedSecret: string | undefined
   ) {
-    if (adminSecret !== expectedSecret) {
+    if (!expectedSecret) {
+      throw new ForbiddenError('Owner seeding is disabled because SEED_SECRET is not configured');
+    }
+    if (!secretsMatch(adminSecret, expectedSecret)) {
       throw new BadRequestError('Invalid admin secret');
     }
 

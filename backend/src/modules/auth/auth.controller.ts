@@ -39,10 +39,9 @@ export class AuthController {
   static async seedOwner(req: Request, res: Response, next: NextFunction) {
     try {
       const { name, email, password, adminSecret } = req.body;
-      const expectedSecret = env.JWT_SECRET; // Using JWT_SECRET as a rudimentary admin secret for seeding, or we can use a dedicated SEED_SECRET.
 
-      const user = await AuthService.seedInitialOwner(name, email, password, adminSecret, expectedSecret);
-      
+      const user = await AuthService.seedInitialOwner(name, email, password, adminSecret, env.SEED_SECRET);
+
       sendSuccess(res, 201, 'Owner seeded successfully', { user });
     } catch (error) {
       next(error);

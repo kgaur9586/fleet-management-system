@@ -44,10 +44,37 @@ export class InvoiceController {
     }
   }
 
+  static async regenerate(req: Request, res: Response, next: NextFunction) {
+    try {
+      const invoice = await InvoiceService.regenerate(req.params.id as string, req.user?.id);
+      sendSuccess(res, 200, 'Invoice regenerated from current trip data', invoice);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async approve(req: Request, res: Response, next: NextFunction) {
     try {
       const invoice = await InvoiceService.approve(req.params.id as string, { notes: req.body.notes }, req.user?.id);
       sendSuccess(res, 200, 'Invoice approved successfully', invoice);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async reopen(req: Request, res: Response, next: NextFunction) {
+    try {
+      const invoice = await InvoiceService.reopen(req.params.id as string, req.body.reason, req.user?.id);
+      sendSuccess(res, 200, 'Invoice reopened successfully', invoice);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async history(req: Request, res: Response, next: NextFunction) {
+    try {
+      const entries = await InvoiceService.history(req.params.id as string);
+      sendSuccess(res, 200, 'Invoice history retrieved successfully', entries);
     } catch (error) {
       next(error);
     }

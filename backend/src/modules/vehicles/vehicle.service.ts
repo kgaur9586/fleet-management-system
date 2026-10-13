@@ -27,6 +27,10 @@ export class VehicleService {
       }
     }
 
+    if (data.firmId) {
+      data.vehicleNumberPerFirm = await this.resolveVehicleNumber(String(data.firmId), data.vehicleNumberPerFirm);
+    }
+
     return VehicleModel.create(data);
   }
 
@@ -49,8 +53,39 @@ export class VehicleService {
       }
     }
 
+    const targetFirmId = data.firmId !== undefined ? data.firmId : vehicle.firmId;
+    if (targetFirmId) {
+      const firmChanged = String(targetFirmId) !== String(vehicle.firmId ?? '');
+      if (data.vehicleNumberPerFirm !== undefined || firmChanged) {
+        data.vehicleNumberPerFirm = await this.resolveVehicleNumber(
+          String(targetFirmId),
+          data.vehicleNumberPerFirm ?? (firmChanged ? undefined : vehicle.vehicleNumberPerFirm),
+          id
+        );
+      }
+    } else {
+      data.vehicleNumberPerFirm = undefined;
+    }
+
     Object.assign(vehicle, data);
     return vehicle.save();
+  }
+
+  /** Keeps the per-firm number stable: supplied values are validated, otherwise the next free number is taken. */
+  private static async resolveVehicleNumber(firmId: string, requested?: number, excludeId?: string) {
+    if (requested !== undefined) {
+      const clash: FilterQuery<IVehicle> = { firmId, vehicleNumberPerFirm: requested, isDeleted: false };
+      if (excludeId) clash._id = { $ne: excludeId };
+      if (await VehicleModel.findOne(clash)) {
+        throw new ConflictError('Another vehicle in this firm already uses this vehicle number');
+      }
+      return requested;
+    }
+
+    const highest = await VehicleModel.findOne({ firmId, isDeleted: false, vehicleNumberPerFirm: { $exists: true } })
+      .sort({ vehicleNumberPerFirm: -1 })
+      .select('vehicleNumberPerFirm');
+    return (highest?.vehicleNumberPerFirm ?? 0) + 1;
   }
 
   static async getById(id: string) {

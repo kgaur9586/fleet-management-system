@@ -37,6 +37,8 @@ export const getApiErrorMessage = (error: unknown) => {
   if (status === 403) return 'You are not authorized to perform this billing operation.';
   if (status === 500) return 'The server could not complete this billing operation. Please try again later.';
   if (normalizedMessage.includes('no completed trips')) return 'No completed trips are available for this firm, vehicle, and billing period.';
+  if (normalizedMessage.includes('no billing rule exists for vehicle capacity')) return `${rawMessage}. Open the contract's current version and add a capacity rate row matching this vehicle's capacity, then re-save the trip so it picks up the updated version.`;
+  if (normalizedMessage.includes('no km threshold matches')) return `${rawMessage}. The contract version's KM thresholds must include a final row with no upper limit to cover any distance.`;
   if (normalizedMessage.includes('contract version') || normalizedMessage.includes('no contract version')) return 'The selected trip is missing an applicable contract version. Check the contract setup before billing.';
   if (normalizedMessage.includes('active contract') || normalizedMessage.includes('contract is missing')) return 'The vehicle or firm does not have a valid active contract for this billing period.';
   if (normalizedMessage.includes('invoice already exists') || normalizedMessage.includes('already exists for this firm')) return 'An invoice already exists for this firm, vehicle, and billing period.';
@@ -104,6 +106,24 @@ export const apiClient = {
   put: <T>(url: string, data?: unknown, config?: AxiosRequestConfig) => request<T>({ ...config, method: 'PUT', url, data }),
   patch: <T>(url: string, data?: unknown, config?: AxiosRequestConfig) => request<T>({ ...config, method: 'PATCH', url, data }),
   delete: <T = undefined>(url: string, config?: AxiosRequestConfig) => request<T>({ ...config, method: 'DELETE', url }),
+  // Overrides the instance-level JSON header so axios can set the multipart boundary itself.
+  upload: <T>(url: string, form: FormData) => request<T>({ method: 'POST', url, data: form, headers: { 'Content-Type': 'multipart/form-data' } }),
+  downloadFile: async (url: string) => {
+    try {
+      const response = await client.get<Blob>(url, { responseType: 'blob' });
+      if (!response.data || response.data.size === 0) throw new ApiRequestError('The backend returned an empty file.', response.status);
+      const disposition = String(response.headers['content-disposition'] || '');
+      const filename = /filename="?([^";]+)"?/.exec(disposition)?.[1];
+      return { blob: response.data, filename };
+    } catch (error) {
+      if (axios.isAxiosError<ApiErrorShape>(error)) {
+        if (!error.response) throw new ApiRequestError('Unable to reach the backend. Check your connection.');
+        const message = error.response.status === 401 ? 'Your session has expired. Please sign in again.' : error.response.status === 404 ? 'The requested file was not found.' : 'File download failed';
+        throw new ApiRequestError(message, error.response.status);
+      }
+      throw error;
+    }
+  },
 };
 
 export default apiClient;
