@@ -4,6 +4,13 @@
 **Based on:** `docs/requirements-analysis.md` (approved with all critical billing questions resolved)
 **Date:** September 2026
 
+> **Status note — October 2026:** This file is a historical architecture proposal, not a reliable
+> description of the running implementation. Verified code discrepancies and a proposed target for
+> multi-day trips, vehicle-owned operational rates, route-derived distances and calculation snapshots
+> are recorded in [`business-rule-revision-2026-10.md`](./business-rule-revision-2026-10.md).
+> Phase 1 invoice-trip locking and draft refresh have been implemented; the remaining proposed
+> business-rule changes have not.
+
 ---
 
 ## Table of Contents
@@ -1892,3 +1899,49 @@ MongoDB collections
 | Logging | Winston (JSON) | Pino, console.log | Structured logging with file rotation; production-ready |
 | Process manager | PM2 | Docker, systemd | Familiar, simple, built-in log management and restart |
 | Reverse proxy | Nginx | Caddy, none | Industry standard; SSL termination; static file caching |
+
+---
+
+## 18. Proposed Business-Rule Revision (Pending Implementation)
+
+This section records the proposed architecture only. It does not describe current behavior; the
+verified current behavior is in [`business-rule-revision-2026-10.md`](./business-rule-revision-2026-10.md)
+§2. Do not use the earlier architecture sketches in this document as evidence that a capability is
+implemented.
+
+### Ownership and flow
+
+- **Vehicle master:** proposed source of vehicle-specific hiring charge per round, average fuel
+  consumption (km/L), and optional vehicle fuel-rate override. Rates must be Decimal128 and changes
+  audited.
+- **Contract / ContractVersion:** retained for agreement identity, firm/company relationship,
+  effective dates, KM-threshold rules, toll treatment, other billable charges, and historical
+  references. Per-capacity rates remain a compatibility fallback until migrated and verified.
+- **Route master:** proposed source of authoritative distance. Backend resolves route distance;
+  client-supplied `totalKm` is not authoritative. The route distance and labels are copied onto each
+  trip so later route edits do not rewrite history.
+- **Trip:** proposed to store start/end dates and immutable rate and route-distance snapshots. New
+  trips use the vehicle's current rates. An in-progress trip keeps the rates captured at creation;
+  any permitted re-price is explicit and audited.
+- **Billing:** invoice line items retain the existing complete calculation snapshot. Once multi-day
+  trips exist, the multiplier must use the vehicle's distance for each relevant day, not total trip
+  or monthly distance. Daily distance apportionment remains an owner decision (Q-2).
+- **Salary:** calculate days from the union of inclusive calendar-day spans for non-cancelled trips;
+  preserve one day per driver/date. Recalculation must reuse the existing reverse-then-reapply
+  advance recovery behavior and refuse to rewrite paid salary records.
+
+### Required dependency order
+
+1. Resolve threshold, daily-distance, and route directionality rules; capture baseline tests.
+2. Lock trips while attached to invoices.
+3. Harden threshold ordering without changing confirmed valid inputs.
+4. Add vehicle rates and a shared rate resolver, initially preserving contract fallback behavior.
+5. Deploy route-derived distance, route/rate snapshots, and frontend changes together.
+6. Deploy multi-day wage and per-day billing behavior together.
+7. Reconcile reports, dashboards, salary expenses, and complete workflow regression.
+
+The threshold bands and decimal boundary behavior are implemented; exactly 127 follows prior
+assumption A-01 and can be revised if the owner intended the other overlapping-range precedence.
+Route directionality, same-day trip aggregation, wage eligibility by status, salary-to-expense
+posting, rounding policy, and historical salary treatment remain open as listed in the planning
+document. No schema migration or historical financial-record rewrite is authorized by this proposal.

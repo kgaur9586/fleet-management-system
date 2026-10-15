@@ -12,6 +12,7 @@ import { RouteModel } from '../../routes/route.model';
 import { ContractModel } from '../../contracts/contract.model';
 import { ContractVersionModel } from '../../contracts/contract-version.model';
 import { TripModel } from '../trip.model';
+import { InvoiceModel } from '../../invoices/invoice.model';
 
 let mongoServer: MongoMemoryServer;
 let token!: string;
@@ -40,13 +41,14 @@ beforeAll(async () => {
   });
   token = loginResponse.body.data.token;
 
-  const firm = await FirmModel.create({ name: 'Trip Test Firm' });
+  const firm = await FirmModel.create({ name: 'Trip Test Firm', billPrefix: 'TRIP' });
   firmId = String(firm._id);
   const vehicle = await VehicleModel.create({
     registrationNumber: 'TRIP001',
     vehicleType: 'Truck',
     capacity: 29000,
     firmId: firm._id,
+    vehicleNumberPerFirm: 1,
   });
   vehicleId = String(vehicle._id);
   const driver = await DriverModel.create({
@@ -59,6 +61,7 @@ beforeAll(async () => {
     name: 'Trip Test Route',
     pickupLocation: 'Origin',
     dropLocation: 'Destination',
+    expectedDistanceKm: 589,
   });
   routeId = String(route._id);
   const contract = await ContractModel.create({ firmId: firm._id, name: 'Trip Contract' });
@@ -84,6 +87,7 @@ afterAll(async () => {
 
 afterEach(async () => {
   await TripModel.deleteMany({});
+  await InvoiceModel.deleteMany({});
 });
 
 const validTrip = () => ({
@@ -119,16 +123,32 @@ describe('Trips Module', () => {
     expect(response.body.data.firmId).toBe(firmId);
     expect(response.body.data.totalKm).toBe(589);
     expect(response.body.data.contractVersionId).toBeDefined();
+    expect(response.body.data.routeDistanceSnapshot.expectedDistanceKm).toBe(589);
+    expect(response.body.data.rateSnapshot.averageKmPerLitre).toBe('2.5');
     expect(response.body.data.toll.amount).toBeDefined();
     expect(response.body.data.operationalInfo.loadType).toBe('milk');
   });
 
   it('validates kilometer values and reference ownership', async () => {
-    const invalidKm = await createTrip({ ...validTrip(), endKm: 900, totalKm: 589 });
+    const invalidKm = await createTrip({ ...validTrip(), routeId: undefined as any });
     expect(invalidKm.status).toBe(400);
 
     const missingReference = await createTrip({ ...validTrip(), vehicleId: new mongoose.Types.ObjectId().toString() });
     expect(missingReference.status).toBe(404);
+  });
+
+  it('uses the selected route distance instead of a client-provided distance', async () => {
+    const response = await createTrip({ ...validTrip(), startKm: 1, endKm: 2, totalKm: 1 });
+
+    expect(response.status).toBe(201);
+    expect(response.body.data.totalKm).toBe(589);
+    expect(response.body.data.routeDistanceSnapshot.expectedDistanceKm).toBe(589);
+  });
+
+  it('requires a route for new API trips', async () => {
+    const response = await createTrip({ ...validTrip(), routeId: undefined as any });
+
+    expect(response.status).toBe(400);
   });
 
   it('updates and retrieves a trip without calculating an invoice', async () => {
@@ -149,6 +169,68 @@ describe('Trips Module', () => {
       .set('Authorization', `Bearer ${token}`);
     expect(get.status).toBe(200);
     expect(get.body.data._id).toBe(tripId);
+  });
+
+  it('refreshes draft invoice snapshots and locks trips until the invoice is reopened', async () => {
+    const created = await createTrip();
+    const tripId = created.body.data._id;
+    const generated = await request(app)
+      .post('/api/v1/invoices/generate')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ firmId, vehicleId, month: 6, year: 2026 });
+    expect(generated.status).toBe(201);
+    const invoiceId = generated.body.data._id;
+
+    const draftUpdate = await request(app)
+      .patch(`/api/v1/trips/${tripId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ totalKm: 600, endKm: 1600 });
+    expect(draftUpdate.status).toBe(200);
+
+    const refreshedDraft = await InvoiceModel.findById(invoiceId);
+    expect(refreshedDraft?.status).toBe('draft');
+    expect(refreshedDraft?.summary.totalDistanceKm).toBe(589);
+    expect(refreshedDraft?.lineItems[0].snapshot.distanceKm).toBe('589');
+
+    const approved = await request(app)
+      .patch(`/api/v1/invoices/${invoiceId}/approve`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({});
+    expect(approved.status).toBe(200);
+
+    const finalized = await request(app)
+      .patch(`/api/v1/invoices/${invoiceId}/finalize`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({});
+    expect(finalized.status).toBe(200);
+
+    const lockedTrip = await request(app)
+      .get(`/api/v1/trips/${tripId}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(lockedTrip.body.data.billingInvoiceStatus).toBe('finalized');
+
+    const blockedUpdate = await request(app)
+      .patch(`/api/v1/trips/${tripId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ dropLocation: 'Changed after finalization' });
+    expect(blockedUpdate.status).toBe(409);
+
+    const blockedDelete = await request(app)
+      .delete(`/api/v1/trips/${tripId}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(blockedDelete.status).toBe(409);
+
+    const reopened = await request(app)
+      .patch(`/api/v1/invoices/${invoiceId}/reopen`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ reason: 'Correcting trip details after review' });
+    expect(reopened.status).toBe(200);
+
+    const editableTrip = await request(app)
+      .patch(`/api/v1/trips/${tripId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ dropLocation: 'Corrected destination' });
+    expect(editableTrip.status).toBe(200);
   });
 
   it('supports search, filters, monthly listing, and pagination', async () => {

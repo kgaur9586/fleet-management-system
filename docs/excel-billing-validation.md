@@ -8,7 +8,7 @@ The reference workbook is `docs/NIR TANKER BILL.xlsx`. It contains five represen
 |---|---|---:|---:|---|
 | NIR/06/26-27/11 | UP13DT0632 | 29,000 | 2.5 | 589 KM, 1.5 rounds, ₹4,500/round |
 | NIR/06/26-27/12 | UP13BT5953 | 23,000 | 3.0 | 110 KM/0.5, 310 KM/1.0, ₹3,000/round |
-| NIR/05/26-27/13 | UP81BT5189 | 23,000 | 3.0 | 652 KM/1.5, ₹3,000/round |
+| NIR/05/26-27/13 | UP81BT5189 | 23,000 | 3.0 | 652 KM/1.5, ₹3,000/round; bill number says 05, but header period/date say June 2026 / 30-Jun |
 | NIR/06/26-27/14 | UP13ET6255 | 34,000 | 2.3 | 365/450 KM, 1.0 round, ₹5,000/round |
 | NIR/06/26-27/15 | UP13ET6256 | 12,000 | 4.0 | 97 KM/0.5 round, ₹1,400/round |
 
@@ -44,7 +44,7 @@ The automated validation suite is `backend/src/modules/billing/__tests__/excel-b
 
 The test compares exact configured inputs, capacity averages, hiring rates, multipliers, hiring amounts, and tolls. Repeating fuel litres are compared numerically at the engine's deterministic division precision.
 
-The workbook retains full repeating monetary values. The application engine intentionally rounds fuel amount and total to 2 decimal places using `ROUND_HALF_UP`:
+The workbook formulas retain full repeating monetary values and grand totals sum those raw formulas. The amount cells use a zero-decimal display format. The application engine instead rounds each line amount to 2 decimal places using `ROUND_HALF_UP`, sums those rounded outputs, and its PDF prints two decimals:
 
 | Workbook value | Application value |
 |---:|---:|
@@ -53,16 +53,32 @@ The workbook retains full repeating monetary values. The application engine inte
 | 9,900.36666666667 | 9,900.37 |
 | 34,002.836 | 34,002.84 |
 
-This is an intentional application policy documented in `docs/billing-engine.md`, not a silent copy of Excel precision.
+The backend test currently asserts the application's 2dp policy; it does not assert parity with the workbook's raw-precision grand total. Whether the intended production rule is raw calculation then whole-rupee display, or 2dp calculation and display, remains open in Q-18.
 
 ## Differences and confirmed-rule conflicts
 
-1. **Rounding:** Excel stores/calculates repeating monetary fractions in the sample rows. The application rounds monetary line outputs and totals to two decimal places for currency-safe results. This is intentional and must be confirmed as the production presentation/accounting policy.
-2. **Short-trip threshold:** The workbook demonstrates `97` and `110` KM as `0.5` rounds, but it does not establish the exact upper boundary. The engine consumes the configured slab and does not invent one.
-3. **Strict equality boundaries:** The supplied business wording says `<127`, `>127 and <500`, `>500 and <700`, and `>700`; exact `127`, `500`, and `700` behavior is not stated. Tests use explicit fixture thresholds and the engine remains configuration-driven.
-4. **Toll source:** The workbook includes actual toll amounts on some rows, including `445` for a 310 KM row and `6,240` for a 652 KM row. The engine uses the supplied trip toll only when the contract's toll treatment is `actual`.
-5. **Other charges:** No separate other billable charge is evidenced in the sampled rows. The engine does not infer one.
+1. **Rounding:** Excel formulas do not apply `ROUND`; e.g. line J7 stores 22572.836, line M7 stores 34002.836, and grand total M36 stores 986082.244. The cells display zero decimal places. The application rounds at 2dp and the PDF shows 2dp, so saved totals and displayed amounts differ by policy (Q-18).
+2. **Short-trip and threshold bands:** The workbook demonstrates 97 and 110 km at 0.5 rounds, 310 km at 1 round, and 589/652 km at 1.5 rounds. The owner confirms 0–127 → 0.5, 127–500 → 1, 500–700 → 1.5, and >700 → 2. Phase 2 implements exactly 127 as 1 round, following existing assumption A-01; exactly 700 is 1.5. Revisit only if the owner intended 127 to stay in the 0.5 band.
+3. **Same-day trip aggregation:** UP13BT5953 has two runs on each of eight dates, 110 km + 310 km = 420 km/day. The workbook applies 0.5 + 1.0 = 1.5 rounds per line. One threshold on the combined daily distance would be 1.0 round under the confirmed bands. This is a confirmed difference between historical billing and requested daily aggregation, not a mere test-fixture issue (Q-16).
+4. **Invoice month mismatch:** `NIR/05/26-27/13` is labeled `PERIOD:-MONTH JUNE 2026` and generated 30/06/2026. Bill number month and printed period disagree (Q-17).
+5. **Vehicle rate ownership:** The workbook demonstrates one base rate per capacity in the sampled bills; it does not demonstrate two same-capacity vehicles with different rates. The owner has clarified that future base hiring rates are fixed per vehicle, with the threshold multiplier applied to that vehicle's base rate.
+6. **Toll source:** The workbook includes actual toll amounts on some rows, including `445` for a 310 KM row and `6,240` for a 652 KM row. The engine uses the supplied trip toll only when the contract's toll treatment is `actual`.
+7. **Other charges:** No separate other billable charge is evidenced in the sampled rows. The engine does not infer one.
 
 ## Scope boundary
 
 This validation covers line-level calculation behavior. It does not implement invoice generation, monthly bill aggregation, PDF generation, or workbook import.
+
+## October 2026 Revision Impact (Pending Implementation)
+
+The owner has confirmed the four threshold bands, including the short-trip 0.5 round. Do not change
+the historical workbook inputs. Phase 2 implements the exact 127 precedence from A-01 and handles
+decimal distances above 700 with the unlimited 2-round row. See
+[`business-rule-revision-2026-10.md`](./business-rule-revision-2026-10.md) for the full rule mapping.
+
+The confirmed formula `hiringAmount = rounds × baseHiringRatePerRound` means hiring charge is a
+per-round base rate, not a per-kilometre rate. The owner clarifies that the base rate is fixed per
+vehicle; current workbook examples are capacity-based and do not prove that vehicle-level distinction.
+Daily aggregation changes the eight 420-km days noted above. Multi-day trip distance allocation
+remains open (Q-2), while same-day multi-run aggregation and invoice-line representation are open
+(Q-16).

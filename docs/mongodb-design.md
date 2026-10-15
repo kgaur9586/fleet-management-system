@@ -2,8 +2,15 @@
 ## Fleet & Transport Operations, Expense and Billing Platform
 
 **Based on:** `docs/requirements-analysis.md` + `docs/technical-architecture.md`
-**Status:** Final design — approved requirements, all critical billing questions resolved
+**Status:** Historical design proposal; not a verified description of the current implementation
 **Date:** September 2026
+
+> **Revision note — October 2026:** The source code differs materially from several schemas below
+> (notably `trips`, `contracts`, `invoices`, and `salary_records`). Proposed, additive schema changes
+> for the four requested business-rule revisions are documented in
+> [`business-rule-revision-2026-10.md`](./business-rule-revision-2026-10.md) §9. No schema changes
+> or migrations have been executed. Read the current-state assessment there before relying on this
+> design document.
 
 > **Key constraint driving every design decision:**
 > Historical finalized bills must remain exactly reproducible even after rates, contracts, or billing rules change.
@@ -61,6 +68,11 @@ The user's proposed list was evaluated against requirements. Here is the final c
 | `contractor_payments` | ❌ Eliminated | **Subcategory of `expenses`** | `category: 'loading_unloading'` in the `expenses` collection handles contractor charges. |
 | `vehicle_documents` | `vehicle_documents` | ✅ Keep | Compliance document tracking with expiry dates |
 | `audit_logs` | `audit_logs` | ✅ Keep | Immutable history of critical business actions |
+
+> **Implemented-name correction:** The running backend has separate `Contract` and
+> `ContractVersion` models, and uses an `invoices` collection rather than the single-version
+> `contracts` / `bills` layout described in parts of this historical design. The code is authoritative
+> for current behavior; see the planning document's discrepancy register.
 
 ### Final collection list (15 collections)
 
@@ -1625,3 +1637,39 @@ To protect write performance, prevent RAM bloat, and maintain lean WiredTiger ca
 | Decimal precision | Decimal128 + decimal.js | JS Number / mongoose Number | Exact financial arithmetic; no floating point; required for billing |
 | Rounding point | Per trip row | Per column total or grand total only | Owner confirmed; matches reference bill behavior |
 | Audit log | Separate collection | Change events on entity documents | Clean separation; never pollutes entity documents; can be archived independently |
+
+---
+
+## 21. Proposed Schema Changes (Pending Implementation)
+
+The tables and sketches above are historical proposals. The following is the proposed delta against
+the **implemented** Mongoose models, not a replacement schema and not a migration script.
+
+| Model | Proposed field/decision | Compatibility and history rule |
+|---|---|---|
+| `Vehicle` | Optional `operationalRates` subdocument: `hiringChargePerRound`, `averageKmPerLitre`, optional `fuelRatePerLitre`, effective/capture metadata | Keep optional during rollout. Resolve missing values through existing contract capacity rates/global HSD rate until each vehicle is configured. Never store rates in unvalidated `metadata`. |
+| `Route` | Continue `expectedDistanceKm`; require it for routes used on new trips after owner backfill. Add one-way/round-trip meaning only after Q-3 is answered. | Do not update existing trips when a route changes. |
+| `Trip` | Optional `tripEndDate`, `rateSnapshot`, and `routeDistanceSnapshot`; keep `startKm` and `endKm` for legacy display/odometer history | Missing new snapshots mean legacy path. Do not backfill historical completed or billed trips from current vehicle/route values. |
+| `Trip` | Keep `contractId` and `contractVersionId` required during this revision | Existing trips/invoices depend on both references; contracts remain for commercial terms and traceability. |
+| `Invoice.lineItems[].snapshot` | Add daily-distance/wage-day and rate-source fields to new calculations only | Finalized invoice snapshots are immutable and are never backfilled or recalculated. |
+| `SalaryRecord` | Keep unique driver/month key; `daysWorked` semantics expand to inclusive trip-day union | Existing salary records remain as issued. Do not retroactively regenerate paid or historical records. |
+
+### Proposed snapshot authority
+
+1. Vehicle rates are the source for future trips.
+2. A trip captures the rates and route distance at creation; in-progress trips do not silently follow
+   later master-data edits. An explicit audited re-price is a separate action if approved.
+3. Invoice line-item snapshots remain the definitive record of billed amounts. Draft regeneration
+   behavior must be confirmed before it changes from today's re-price behavior (Q-7).
+
+### Migration gates
+
+- First report all active routes with absent `expectedDistanceKm`; owner supplies values before the
+  route becomes mandatory. No client-provided distance can substitute silently for missing master
+  data unless Q-5 explicitly approves an audited override.
+- No migration rewrites finalized invoice snapshots or historical trip rates.
+- Additive fields are optional first; legacy reads use the existing contract-based calculation path.
+- A salary-to-expense link, if approved, requires a unique `salaryRecordId` idempotency key and an
+  upsert. Do not create one expense on every salary regeneration.
+
+The complete migration, API compatibility and rollback sequence is in the planning document §§9–11.

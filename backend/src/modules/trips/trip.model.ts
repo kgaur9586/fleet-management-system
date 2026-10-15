@@ -16,6 +16,23 @@ export interface ITrip extends Document {
   startKm?: number;
   endKm?: number;
   totalKm: number;
+  routeDistanceSnapshot?: {
+    routeId: mongoose.Types.ObjectId;
+    routeName: string;
+    expectedDistanceKm: number;
+    capturedAt: Date;
+  };
+  rateSnapshot?: {
+    hiringChargePerRound: string;
+    averageKmPerLitre: string;
+    fuelRatePerLitre: string;
+    capturedAt: Date;
+    sources: {
+      hiringChargePerRound: 'vehicle' | 'contract_capacity';
+      averageKmPerLitre: 'vehicle' | 'contract_capacity';
+      fuelRatePerLitre: 'vehicle' | 'global_hsd' | 'contract_fallback';
+    };
+  };
   operationalStatus: TripOperationalStatus;
   toll?: {
     amount: mongoose.Types.Decimal128;
@@ -45,6 +62,8 @@ const tripSchema = new Schema<ITrip>(
     startKm: { type: Number, min: 0 },
     endKm: { type: Number, min: 0 },
     totalKm: { type: Number, required: true, min: 0 },
+    routeDistanceSnapshot: { type: Schema.Types.Mixed, default: undefined },
+    rateSnapshot: { type: Schema.Types.Mixed, default: undefined },
     operationalStatus: {
       type: String,
       enum: ['planned', 'in_progress', 'completed', 'cancelled'],

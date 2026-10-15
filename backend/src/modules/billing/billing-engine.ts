@@ -11,6 +11,8 @@ export interface BillingEngineTrip {
 export interface BillingEngineVehicle {
   vehicleId?: string;
   capacity: number;
+  averageKmPerLitre?: DecimalInput;
+  baseHiringRatePerRound?: DecimalInput;
 }
 
 export interface BillingEngineContract {
@@ -109,9 +111,23 @@ function findCapacityRule(rules: IBillingRules, capacity: number): ICapacityBill
 }
 
 function findRounds(rules: IBillingRules, distanceKm: number) {
-  const threshold = rules.kmThresholds.find((candidate) => candidate.upToKm === undefined || distanceKm < candidate.upToKm);
-  if (!threshold) throw new BillingRuleConfigurationError(`No KM threshold matches distance ${distanceKm}`);
-  return Decimal.from(threshold.rounds);
+  const thresholds = [...rules.kmThresholds].sort((first, second) => {
+    if (first.upToKm === undefined) return second.upToKm === undefined ? 0 : 1;
+    if (second.upToKm === undefined) return -1;
+    return first.upToKm - second.upToKm;
+  });
+  const finiteThresholds = thresholds.filter((candidate) => candidate.upToKm !== undefined);
+  const threshold = finiteThresholds.find((candidate) => distanceKm < candidate.upToKm!);
+  if (threshold) return Decimal.from(threshold.rounds);
+  const finalFiniteThreshold = finiteThresholds[finiteThresholds.length - 1];
+  if (finalFiniteThreshold && distanceKm === finalFiniteThreshold.upToKm) {
+    return Decimal.from(finalFiniteThreshold.rounds);
+  }
+  const unlimitedThreshold = thresholds.find((candidate) => candidate.upToKm === undefined);
+  if (unlimitedThreshold) {
+    return Decimal.from(unlimitedThreshold.rounds);
+  }
+  throw new BillingRuleConfigurationError(`No KM threshold matches distance ${distanceKm}`);
 }
 
 export function calculateTripBilling(
@@ -125,9 +141,11 @@ export function calculateTripBilling(
   const distance = Decimal.from(trip.distanceKm);
   const distanceNumber = Number(distance.toString());
   if (!Number.isFinite(distanceNumber) || distanceNumber <= 0) throw new BillingRuleConfigurationError('Distance must be greater than zero');
-  const capacityRule = findCapacityRule(billingRules, vehicle.capacity);
-  const average = Decimal.from(capacityRule.contractualAverageKmPerLitre);
-  const baseHiringRate = Decimal.from(capacityRule.baseHiringRatePerRound);
+  const capacityRule = vehicle.averageKmPerLitre === undefined || vehicle.baseHiringRatePerRound === undefined
+    ? findCapacityRule(billingRules, vehicle.capacity)
+    : undefined;
+  const average = Decimal.from(vehicle.averageKmPerLitre ?? capacityRule!.contractualAverageKmPerLitre);
+  const baseHiringRate = Decimal.from(vehicle.baseHiringRatePerRound ?? capacityRule!.baseHiringRatePerRound);
   const fuelRate = Decimal.from(applicableFuelRate);
   const fuelLitres = distance.divide(average);
   const fuelAmount = fuelLitres.multiply(fuelRate).round(MONEY_SCALE);

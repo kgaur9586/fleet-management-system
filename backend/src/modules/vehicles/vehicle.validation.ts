@@ -5,6 +5,13 @@ import mongoose from 'mongoose';
 const objectIdSchema = z.string().refine((val) => mongoose.Types.ObjectId.isValid(val), {
   message: 'Invalid ObjectId',
 });
+const positiveDecimalSchema = z.number().finite().positive();
+const vehicleOperationalRatesSchema = z.object({
+  hiringChargePerRound: positiveDecimalSchema,
+  averageKmPerLitre: positiveDecimalSchema,
+  fuelRatePerLitre: positiveDecimalSchema.optional(),
+  effectiveFrom: z.coerce.date(),
+});
 
 export const createVehicleSchema = z.object({
   body: z.object({
@@ -20,6 +27,7 @@ export const createVehicleSchema = z.object({
     firmId: objectIdSchema.optional(),
     vehicleNumberPerFirm: z.number().int().min(1).optional(),
     status: z.enum(['available', 'on_trip', 'maintenance']).optional(),
+    operationalRates: vehicleOperationalRatesSchema.optional(),
     metadata: z.record(z.string(), z.any()).optional(),
   }),
 });
@@ -43,6 +51,7 @@ export const updateVehicleSchema = z.object({
     firmId: objectIdSchema.nullable().optional(), // Allow removing firm association
     vehicleNumberPerFirm: z.number().int().min(1).optional(),
     status: z.enum(['available', 'on_trip', 'maintenance']).optional(),
+    operationalRates: vehicleOperationalRatesSchema.nullable().optional(),
     metadata: z.record(z.string(), z.any()).optional(),
   }),
 });

@@ -23,7 +23,7 @@ The contractual average comes from the matching vehicle capacity rule in the sup
 
 ## Hiring
 
-Hiring is configured by the owner/admin per vehicle capacity. A capacity configuration contains the applicable hiring rate per round. The engine then determines the number of rounds from the configured KM slab table:
+**Current implementation:** hiring is configured in the contract version by vehicle capacity, as a rate per round. The engine then determines the number of rounds from the configured KM slab table. **Proposed target:** the owner clarified on 15 October 2026 that the base hiring rate is fixed per vehicle; the threshold multiplier still applies to that fixed per-vehicle base rate.
 
 ```text
 hiringAmount = capacityHiringRatePerRound * roundsForDistance
@@ -33,27 +33,30 @@ The four owner-provided KM slabs are:
 
 | Distance covered | Rounds |
 |---|---:|
-| Less than 127 KM | 0.5 |
-| Greater than 127 KM and less than 500 KM | 1 |
-| Greater than 500 KM and less than 700 KM | 1.5 |
-| Greater than 700 KM | 2 |
+| 0 <= distance < 127 KM | 0.5 |
+| 127 <= distance < 500 KM | 1 |
+| 500 <= distance <= 700 KM | 1.5 |
+| distance > 700 KM | 2 |
 
-The owner/admin configuration should therefore support, per contract version:
+The current contract-version configuration supports:
 
 ```text
 capacity -> hiring rate per round
 KM slab  -> rounds/multiplier
 ```
 
-The current backend rule structure represents this as `capacityRates[].baseHiringRatePerRound` and `kmThresholds[].rounds`. The engine does not hard-code capacity rates or KM slabs; it consumes the selected version's configuration.
+The current backend rule structure represents this as `capacityRates[].baseHiringRatePerRound` and `kmThresholds[].rounds`. The engine does not hard-code capacity rates or KM slabs; it consumes the selected version's configuration. The proposed vehicle-owned fixed base rate is documented in [`business-rule-revision-2026-10.md`](./business-rule-revision-2026-10.md) §5.3.
 
-The generic threshold lookup uses the supplied `billingRules.kmThresholds` table and selects the first configured threshold where:
+The Phase 2 threshold lookup sorts the supplied `billingRules.kmThresholds` by `upToKm`, then selects the first finite threshold where:
 
 ```text
 distanceKm < upToKm
 ```
 
-An omitted `upToKm` is the final unlimited threshold. Its configured `rounds` value is returned as `hiringMultiplier`, and:
+If the distance exactly equals the highest finite `upToKm`, that final finite row applies. This makes
+700 KM map to 1.5 rounds while values above 700 use the final unlimited row. An omitted `upToKm` is
+the unlimited threshold; its configured `rounds` value applies after the highest finite boundary.
+The selected `rounds` value is returned as `hiringMultiplier`, and:
 
 ```text
 hiringAmount = baseHiringRatePerRound * configuredRounds
@@ -61,9 +64,9 @@ hiringAmount = baseHiringRatePerRound * configuredRounds
 
 The engine does not invent a rule when no configured threshold matches; it throws `BillingRuleConfigurationError`.
 
-### Boundary confirmation required
+### Boundary semantics
 
-The supplied wording uses strict comparisons and does not state which slab owns exactly `127`, `500`, or `700` KM. The configuration must explicitly settle those equality cases before production billing. Until then, do not silently assign them in application code. The unit tests use an explicit configuration representation for the confirmed operational interpretation and keep the engine itself generic.
+Implemented in Phase 2: `<127 → 0.5`, `127 through <500 → 1`, `500 through 700 → 1.5`, and `>700 → 2`. Exactly 127 is assigned to the 1-round row, following the prior documented lower-bound assumption. Decimal distances are supported: 700.1 uses 2 rounds. Threshold rows are sorted defensively by the engine; contract API validation continues to require ascending, non-overlapping boundaries and a final unlimited row. Boundary tests now align with these rules.
 
 ## Toll and other charges
 
@@ -117,3 +120,32 @@ The engine consumes an already selected `contractVersion` and does not query or 
 ## Tests
 
 The unit suite covers 100, 310, 500, 501, 550, 700, 701, and 750 KM, multiple vehicle capacities/averages, actual versus excluded tolls, missing capacity rules, and missing KM mappings. Expected values are asserted only where the supplied configuration and confirmed formulas determine them.
+
+---
+
+## Proposed Rate Ownership and Daily Distance (Pending Implementation)
+
+The engine's verified current behavior is described above: it gets average and hiring rate from the
+matching contract-version capacity rule, uses an externally supplied global-first fuel rate, and
+compares the provided `distanceKm` against the configured thresholds. The proposed business-rule
+revision changes the caller's rate sources, not the meaning of the hiring formula:
+
+```text
+fuelLitres = dailyDistanceKm / vehicle.averageKmPerLitre
+fuelAmount = fuelLitres * applicableFuelRate
+hiringAmount = vehicle.hiringChargePerRound * roundsForDailyDistance
+```
+
+The hiring charge remains **currency per round**, not currency per kilometre. Contract versions
+remain necessary for commercial terms and threshold configuration. Vehicle rates should be resolved
+before calling the pure engine, with existing contract capacity rates and global HSD history retained
+as a legacy fallback until migration is complete.
+
+When trips span calendar days, the threshold input must be each day's distance, never the full trip or
+monthly total. Whether that requires per-day invoice lines and how total trip distance is apportioned
+are unresolved business decisions (Q-2); no calculation rule is implied here. The revision request's
+threshold wording also conflicts with the previously owner-confirmed 0.5-round short-trip slab and
+workbook evidence. Q-1 must be resolved before changing threshold fixtures or production rules.
+
+The detailed verified formulas, threshold fixture mismatch, and phased implementation gates are in
+[`business-rule-revision-2026-10.md`](./business-rule-revision-2026-10.md) §§2, 5, 10–11.

@@ -4,6 +4,12 @@
 **Companion to:** `docs/mongodb-design.md`
 **Date:** September 2026
 
+> **Status note — October 2026:** The ERD and flows below are historical design sketches and do not
+> match all running models. The verified relationship graph and proposed target are in
+> [`business-rule-revision-2026-10.md`](./business-rule-revision-2026-10.md) §§2, 8. The current
+> implementation uses `Trip.contractVersionId`, `Trip.billingInvoiceId`, `Route.expectedDistanceKm`,
+> and invoice-embedded line-item snapshots. No relationship/schema change has been implemented.
+
 ---
 
 ## Table of Contents
@@ -606,6 +612,37 @@ Denormalized fields are copied from their source at document creation time and n
 | `vehicle_documents.firm` | firm ObjectId | `vehicles.firm` | Copied at document creation. |
 | `audit_logs.userName` | string | `users.name` | Copied at log creation. Never updated. |
 | `calculationSnapshot.*` | all rate values | multiple sources | Full copy at bill finalization. Immutable after. |
+
+---
+
+## 8. Proposed Relationship and Snapshot Flow (Pending Implementation)
+
+```text
+Vehicle.operationalRates ──source for new──▶ Trip.rateSnapshot
+Route.expectedDistanceKm ──source for new──▶ Trip.routeDistanceSnapshot
+Contract ──firm/company agreement───────────▶ Trip.contractId
+ContractVersion ──effective commercial rules▶ Trip.contractVersionId
+Trip.rateSnapshot + route distance + daily distance
+  ──calculation inputs──▶ Invoice.lineItems[].snapshot
+Invoice finalization ──immutable financial record──▶ Invoice history / PDF / reports
+Driver + trip day spans ──distinct calendar-day union──▶ SalaryRecord.daysWorked
+SalaryRecord ──advance recovery ledger───────────────▶ DriverAdvanceRecovery
+```
+
+The proposed design keeps contracts and versions: commercial terms and historical references still
+depend on them. Vehicle rates become the operational source for hiring, average and (when explicitly
+configured) fuel-rate override. Contract versions continue to own KM thresholds, toll treatment,
+other commercial charges, effective dates, and firm/company agreement identity.
+
+The trip's vehicle-rate and route-distance snapshots are captured at trip creation and do not track
+subsequent master edits. A finalized invoice continues to use its existing stored calculation
+snapshot without recalculation. Legacy trips with no trip-level snapshots use the current contract
+version fallback for compatibility; this fallback must be visible during preview.
+
+For multi-day trips, salary days are proposed as the inclusive set of calendar dates from
+`tripDate` through `tripEndDate`, unioned across a driver's eligible trips. Whether invoice lines are
+split by day and how distance is apportioned remain unresolved (Q-2); do not implement a relation
+that assumes the answer.
 
 ---
 

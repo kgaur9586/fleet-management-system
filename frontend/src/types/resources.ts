@@ -9,10 +9,11 @@ export interface Company {
 }
 export type CompanyPayload = Omit<Partial<Company>, '_id' | 'isDeleted' | 'createdAt' | 'updatedAt'> & Pick<Company, 'name'>;
 
+export interface VehicleOperationalRates { hiringChargePerRound: DecimalValue; averageKmPerLitre: DecimalValue; fuelRatePerLitre?: DecimalValue; effectiveFrom: string; updatedBy?: string; createdAt?: string; updatedAt?: string }
 export interface Vehicle {
   _id: string; registrationNumber: string; vehicleType: string; capacity: number;
   make?: string; vehicleModel?: string; firmId?: string | { _id: string; name: string }; vehicleNumberPerFirm?: number; status: 'available' | 'on_trip' | 'maintenance';
-  isActive: boolean; isDeleted: boolean; metadata?: Record<string, unknown>; createdAt: string; updatedAt: string;
+  operationalRates?: VehicleOperationalRates | null; isActive: boolean; isDeleted: boolean; metadata?: Record<string, unknown>; createdAt: string; updatedAt: string;
 }
 export type VehiclePayload = Omit<Partial<Vehicle>, '_id' | 'isDeleted' | 'createdAt' | 'updatedAt'> & Pick<Vehicle, 'registrationNumber' | 'vehicleType' | 'capacity'>;
 
@@ -41,8 +42,8 @@ export interface ContractVersion { _id: string; contractId: string; version: num
 export interface ContractPayload { firmId: string; companyId?: string; name: string; description?: string; isActive?: boolean }
 export interface ContractVersionPayload { effectiveFrom: string; effectiveTo?: string | null; billingRules: BillingRules; notes?: string }
 
-export interface Trip { _id: string; tripDate: string; vehicleId: string; driverId: string; firmId: string; contractId: string; contractVersionId: string; routeId?: string; pickupLocation: string; dropLocation: string; startKm?: number; endKm?: number; totalKm: number; operationalStatus: 'planned' | 'in_progress' | 'completed' | 'cancelled'; toll?: { amount: DecimalValue; reference?: string; notes?: string }; operationalInfo?: Record<string, unknown>; notes?: string; isDeleted: boolean; deletedAt?: string; createdAt: string; updatedAt: string }
-export interface TripPayload { tripDate: string; vehicleId: string; driverId: string; firmId: string; contractId: string; routeId?: string | null; pickupLocation: string; dropLocation: string; startKm?: number; endKm?: number; totalKm: number; operationalStatus?: Trip['operationalStatus']; toll?: { amount: number; reference?: string; notes?: string }; operationalInfo?: Record<string, unknown>; notes?: string }
+export interface Trip { _id: string; tripDate: string; vehicleId: string; driverId: string; firmId: string; contractId: string; contractVersionId: string; billingInvoiceId?: string; billingInvoiceStatus?: 'draft' | 'review' | 'approved' | 'finalized' | 'missing'; routeId?: string; routeDistanceSnapshot?: { routeId: string; routeName: string; expectedDistanceKm: number; capturedAt: string }; rateSnapshot?: { hiringChargePerRound: string; averageKmPerLitre: string; fuelRatePerLitre: string; capturedAt: string; sources: { hiringChargePerRound: 'vehicle' | 'contract_capacity'; averageKmPerLitre: 'vehicle' | 'contract_capacity'; fuelRatePerLitre: 'vehicle' | 'global_hsd' | 'contract_fallback' } }; pickupLocation: string; dropLocation: string; startKm?: number; endKm?: number; totalKm: number; operationalStatus: 'planned' | 'in_progress' | 'completed' | 'cancelled'; toll?: { amount: DecimalValue; reference?: string; notes?: string }; operationalInfo?: Record<string, unknown>; notes?: string; isDeleted: boolean; deletedAt?: string; createdAt: string; updatedAt: string }
+export interface TripPayload { tripDate: string; vehicleId: string; driverId: string; firmId: string; contractId: string; routeId?: string | null; pickupLocation: string; dropLocation: string; startKm?: number; endKm?: number; totalKm?: number; operationalStatus?: Trip['operationalStatus']; toll?: { amount: number; reference?: string; notes?: string }; operationalInfo?: Record<string, unknown>; notes?: string }
 export interface TripQuery { page?: number; limit?: number; search?: string; fromDate?: string; toDate?: string; month?: string; vehicleId?: string; driverId?: string; firmId?: string; operationalStatus?: Trip['operationalStatus'] }
 
 export type ExpenseCategory = 'fuel' | 'toll' | 'maintenance' | 'service' | 'insurance' | 'driver_wages' | 'driver_advance' | 'loading_unloading' | 'other';

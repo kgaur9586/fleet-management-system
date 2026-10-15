@@ -11,7 +11,7 @@ export class TripController {
 
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
-      sendSuccess(res, 200, 'Trip updated successfully', await TripService.update(req.params.id as string, req.body));
+      sendSuccess(res, 200, 'Trip updated successfully', await TripService.update(req.params.id as string, req.body, req.user?.id));
     } catch (error) { next(error); }
   }
 
