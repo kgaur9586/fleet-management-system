@@ -1,6 +1,7 @@
 import { VehicleModel, IVehicle } from './vehicle.model';
 import { NotFoundError, ConflictError } from '../../common/errors';
 import { FilterQuery } from 'mongoose';
+import { AuditService } from '../audit/audit.service';
 
 interface QueryOptions {
   page?: number;
@@ -13,7 +14,7 @@ interface QueryOptions {
 }
 
 export class VehicleService {
-  static async create(data: Partial<IVehicle>) {
+  static async create(data: Partial<IVehicle>, createdBy?: string) {
     // Normalize registration number format to avoid duplicates
     const normalizedRegNo = data.registrationNumber?.replace(/[\s\-]/g, '').toUpperCase();
     
@@ -31,10 +32,25 @@ export class VehicleService {
       data.vehicleNumberPerFirm = await this.resolveVehicleNumber(String(data.firmId), data.vehicleNumberPerFirm);
     }
 
-    return VehicleModel.create(data);
+    const vehicle = await VehicleModel.create({
+      ...data,
+      operationalRates: data.operationalRates
+        ? { ...data.operationalRates, updatedBy: createdBy }
+        : undefined,
+    });
+    if (vehicle.operationalRates) {
+      await AuditService.record({
+        action: 'vehicle.operational_rates_updated',
+        entityType: 'vehicle',
+        entityId: vehicle._id,
+        userId: createdBy,
+        changes: { after: this.toOperationalRateSnapshot(vehicle.operationalRates) },
+      });
+    }
+    return vehicle;
   }
 
-  static async update(id: string, data: Partial<IVehicle>) {
+  static async update(id: string, data: Partial<IVehicle>, updatedBy?: string) {
     const vehicle = await VehicleModel.findOne({ _id: id, isDeleted: false });
     if (!vehicle) {
       throw new NotFoundError('Vehicle not found');
@@ -67,8 +83,23 @@ export class VehicleService {
       data.vehicleNumberPerFirm = undefined;
     }
 
+    const beforeRates = this.toOperationalRateSnapshot(vehicle.operationalRates);
+    if (data.operationalRates) {
+      data.operationalRates = { ...data.operationalRates, updatedBy } as IVehicle['operationalRates'];
+    }
     Object.assign(vehicle, data);
-    return vehicle.save();
+    const updatedVehicle = await vehicle.save();
+    const afterRates = this.toOperationalRateSnapshot(updatedVehicle.operationalRates);
+    if (JSON.stringify(beforeRates) !== JSON.stringify(afterRates)) {
+      await AuditService.record({
+        action: 'vehicle.operational_rates_updated',
+        entityType: 'vehicle',
+        entityId: updatedVehicle._id,
+        userId: updatedBy,
+        changes: { before: beforeRates, after: afterRates },
+      });
+    }
+    return updatedVehicle;
   }
 
   /** Keeps the per-firm number stable: supplied values are validated, otherwise the next free number is taken. */
@@ -155,6 +186,16 @@ export class VehicleService {
         limit,
         totalPages: Math.ceil(total / limit),
       },
+    };
+  }
+
+  private static toOperationalRateSnapshot(rates: IVehicle['operationalRates']) {
+    if (!rates) return undefined;
+    return {
+      hiringChargePerRound: rates.hiringChargePerRound.toString(),
+      averageKmPerLitre: rates.averageKmPerLitre.toString(),
+      fuelRatePerLitre: rates.fuelRatePerLitre?.toString(),
+      effectiveFrom: rates.effectiveFrom.toISOString(),
     };
   }
 }

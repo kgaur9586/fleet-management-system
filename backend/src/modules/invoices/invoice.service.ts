@@ -90,11 +90,13 @@ export class InvoiceService {
         {
           vehicleId: String(vehicle._id),
           capacity: Number(vehicle.capacity),
+          averageKmPerLitre: trip.rateSnapshot?.averageKmPerLitre,
+          baseHiringRatePerRound: trip.rateSnapshot?.hiringChargePerRound,
         },
         { contractId: String(contract._id) },
         { contractVersionId: String(version._id), version: (version as any).version },
         (version as any).billingRules,
-        billingRate
+        trip.rateSnapshot?.fuelRatePerLitre ?? billingRate
       );
 
       lineItems.push({
@@ -254,17 +256,17 @@ export class InvoiceService {
       tripDate: toDateRange(invoice.year, invoice.month),
       operationalStatus: 'completed',
       isDeleted: false,
-      billingInvoiceId: { $exists: false },
+      $or: [
+        { billingInvoiceId: invoice._id },
+        { billingInvoiceId: { $exists: false } },
+      ],
     }).sort({ tripDate: 1 });
-
-    if (!trips.length) {
-      throw new NotFoundError('No completed, unbilled trips found for this firm, vehicle, and month');
-    }
 
     const { lineItems, summary } = await this.buildLineItemsFromTrips(trips);
     const tripIds = trips.map((trip) => String(trip._id));
 
     await withTransaction(async (session) => {
+      const includedTripIds = trips.map((trip) => trip._id);
       invoice.lineItems = lineItems;
       invoice.summary = summary as any;
       invoice.duplicateTripGuard = {
@@ -277,10 +279,20 @@ export class InvoiceService {
       await invoice.save({ session });
 
       await TripModel.updateMany(
-        { _id: { $in: trips.map((trip) => trip._id) }, billingInvoiceId: { $exists: false } },
-        { $set: { billingInvoiceId: invoice._id } },
+        { billingInvoiceId: invoice._id, _id: { $nin: includedTripIds } },
+        { $unset: { billingInvoiceId: '' } },
         { session }
       );
+      if (includedTripIds.length) {
+        await TripModel.updateMany(
+          {
+            _id: { $in: includedTripIds },
+            $or: [{ billingInvoiceId: invoice._id }, { billingInvoiceId: { $exists: false } }],
+          },
+          { $set: { billingInvoiceId: invoice._id } },
+          { session }
+        );
+      }
     });
 
     await AuditService.record({
@@ -331,12 +343,20 @@ export class InvoiceService {
   }
 
   static async approve(id: string, data: InvoiceUpdateInput, approvedBy?: string) {
-    const invoice = await this.requireInvoice(id);
+    let invoice = await this.requireInvoice(id);
     if (invoice.status === 'finalized') {
       throw new ConflictError('A finalized invoice cannot be approved again');
     }
     if (invoice.status === 'approved') {
       return invoice;
+    }
+
+    if (invoice.status === 'draft') {
+      await this.regenerate(id, approvedBy);
+      invoice = await this.requireInvoice(id);
+    }
+    if (!invoice.lineItems.length) {
+      throw new ConflictError('An invoice with no trip lines cannot be approved');
     }
 
     invoice.status = 'approved';

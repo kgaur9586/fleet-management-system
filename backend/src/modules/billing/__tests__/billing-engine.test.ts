@@ -4,7 +4,7 @@ import { IBillingRules } from '../../contracts/billing-rule.model';
 const rulesFor = (capacity: number, average: string, hiringRate: string): IBillingRules => ({
   capacityRates: [{ capacity, contractualAverageKmPerLitre: average as never, baseHiringRatePerRound: hiringRate as never }],
   fuelRatePerLitre: '95.81' as never,
-  kmThresholds: [{ upToKm: 501, rounds: 1 }, { upToKm: 701, rounds: 1.5 }, { rounds: 2 }],
+  kmThresholds: [{ upToKm: 127, rounds: 0.5 }, { upToKm: 500, rounds: 1 }, { upToKm: 700, rounds: 1.5 }, { rounds: 2 }],
   tollTreatment: 'actual',
   otherBillableCharges: [],
 });
@@ -12,7 +12,7 @@ const rulesFor = (capacity: number, average: string, hiringRate: string): IBilli
 const calculate = (distanceKm: number, capacity = 29000, average = '2.5', hiringRate = '4500') => calculateTripBilling({ tripId: `trip-${distanceKm}`, distanceKm, tollAmount: '0' }, { vehicleId: 'vehicle-1', capacity }, { contractId: 'contract-1' }, { contractVersionId: 'version-1', version: 3 }, rulesFor(capacity, average, hiringRate), '95.81');
 
 describe('calculateTripBilling', () => {
-  it.each([100, 310, 500, 501, 550, 700, 701, 750])('uses configured KM threshold for %s KM without inventing lower mappings', (distanceKm) => {
+  it.each([100, 126, 127, 310, 499, 500, 501, 550, 700, 700.1, 701, 750])('uses configured KM threshold for %s KM', (distanceKm) => {
     const result = calculate(distanceKm);
     expect(result.distanceKm).toBe(String(distanceKm));
     expect(result.contractVersionId).toBe('version-1');
@@ -37,8 +37,22 @@ describe('calculateTripBilling', () => {
     expect(result.hiringAmount).toBe('1400');
   });
 
-  it.each([[500, '1'], [501, '1.5'], [550, '1.5'], [700, '1.5'], [701, '2'], [750, '2']])('selects the confirmed multiplier for %s KM', (distanceKm, multiplier) => {
+  it.each([[100, '0.5'], [126, '0.5'], [127, '1'], [499, '1'], [500, '1.5'], [501, '1.5'], [550, '1.5'], [700, '1.5'], [700.1, '2'], [701, '2'], [750, '2']])('selects the confirmed multiplier for %s KM', (distanceKm, multiplier) => {
     expect(calculate(distanceKm).hiringMultiplier).toBe(multiplier);
+  });
+
+  it('selects the same threshold when configuration rows are unsorted', () => {
+    const sortedRules = rulesFor(29000, '2.5', '4500');
+    const reversedRules = { ...sortedRules, kmThresholds: [...sortedRules.kmThresholds].reverse() };
+    const calculateWithRules = (distanceKm: number) => calculateTripBilling(
+      { distanceKm }, { capacity: 29000 }, { contractId: 'c' }, { contractVersionId: 'v' }, reversedRules, '95.81'
+    );
+
+    expect(calculateWithRules(100).hiringMultiplier).toBe('0.5');
+    expect(calculateWithRules(127).hiringMultiplier).toBe('1');
+    expect(calculateWithRules(500).hiringMultiplier).toBe('1.5');
+    expect(calculateWithRules(700).hiringMultiplier).toBe('1.5');
+    expect(calculateWithRules(700.1).hiringMultiplier).toBe('2');
   });
 
   it('uses actual toll only when toll treatment is billable', () => {

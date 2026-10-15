@@ -12,11 +12,33 @@ export interface IVehicle extends Document {
   firmId?: mongoose.Types.ObjectId; // Associated firm/customer
   /** Stable sequential number within the firm; forms the last segment of the bill number. */
   vehicleNumberPerFirm?: number;
+  operationalRates?: IVehicleOperationalRates | null;
   status: 'available' | 'on_trip' | 'maintenance';
   metadata?: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface IVehicleOperationalRates {
+  hiringChargePerRound: mongoose.Types.Decimal128;
+  averageKmPerLitre: mongoose.Types.Decimal128;
+  fuelRatePerLitre?: mongoose.Types.Decimal128;
+  effectiveFrom: Date;
+  updatedBy?: mongoose.Types.ObjectId;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+const vehicleOperationalRatesSchema = new Schema<IVehicleOperationalRates>(
+  {
+    hiringChargePerRound: { type: Schema.Types.Decimal128, required: true, min: 0 },
+    averageKmPerLitre: { type: Schema.Types.Decimal128, required: true, min: 0 },
+    fuelRatePerLitre: { type: Schema.Types.Decimal128, min: 0 },
+    effectiveFrom: { type: Date, required: true },
+    updatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+  },
+  { _id: false, timestamps: true }
+);
 
 const vehicleSchema = new Schema<IVehicle>(
   {
@@ -72,6 +94,10 @@ const vehicleSchema = new Schema<IVehicle>(
     vehicleNumberPerFirm: {
       type: Number,
       min: 1,
+    },
+    operationalRates: {
+      type: vehicleOperationalRatesSchema,
+      default: undefined,
     },
     status: {
       type: String,

@@ -4,6 +4,10 @@ import { ContractModel } from '../contracts/contract.model';
 import { ContractService } from '../contracts/contract.service';
 import { DriverModel } from '../drivers/driver.model';
 import { FirmModel } from '../firms/firm.model';
+import { InvoiceModel } from '../invoices/invoice.model';
+import { InvoiceService } from '../invoices/invoice.service';
+import { HsdRateService } from '../hsd-rates/hsd-rate.service';
+import { RateResolutionService } from '../billing/rate-resolution.service';
 import { RouteModel } from '../routes/route.model';
 import { VehicleModel } from '../vehicles/vehicle.model';
 import { ITrip, TripModel } from './trip.model';
@@ -46,21 +50,32 @@ export class TripService {
     const tripDate = this.requireDate(data.tripDate);
     const references = await this.validateReferences(data, tripDate);
     const contractVersion = await ContractService.getEffectiveVersion(data.contractId as string, tripDate);
+    const totalKm = this.resolveTripDistance(references.route, data.routeId);
+    const rateSnapshot = await this.captureRateSnapshot(references.vehicle, contractVersion, tripDate);
 
     return TripModel.create({
       ...data,
       tripDate,
+      totalKm,
       vehicleId: references.vehicle._id,
       driverId: references.driver._id,
       firmId: references.firm._id,
       contractId: references.contract._id,
       contractVersionId: contractVersion._id,
       routeId: data.routeId || undefined,
+      routeDistanceSnapshot: {
+        routeId: references.route!._id,
+        routeName: references.route!.name,
+        expectedDistanceKm: totalKm,
+        capturedAt: new Date(),
+      },
+      rateSnapshot,
     });
   }
 
-  static async update(id: string, data: TripInput) {
+  static async update(id: string, data: TripInput, updatedBy?: string) {
     const trip = await this.requireTrip(id);
+    const linkedDraftInvoice = await this.requireEditableInvoice(trip);
     if (trip.operationalStatus === 'cancelled') {
       throw new ConflictError('Cancelled trips cannot be updated');
     }
@@ -78,31 +93,55 @@ export class TripService {
       endKm: data.endKm ?? trip.endKm,
       totalKm: data.totalKm ?? trip.totalKm,
     };
-    this.validateKilometers(merged);
+    if (!merged.routeId) this.validateKilometers(merged);
     const references = await this.validateReferences(merged, merged.tripDate);
     const contractChanged = String(trip.contractId) !== merged.contractId || trip.tripDate.getTime() !== merged.tripDate.getTime();
     const contractVersion = contractChanged
       ? await ContractService.getEffectiveVersion(merged.contractId, merged.tripDate)
       : null;
+    const effectiveContractVersion = contractVersion ?? await ContractService.getVersion(String(trip.contractId), String(trip.contractVersionId));
+    const totalKm = references.route
+      ? this.resolveTripDistance(references.route, merged.routeId)
+      : merged.totalKm;
+    const rateSnapshot = await this.captureRateSnapshot(references.vehicle, effectiveContractVersion, merged.tripDate);
 
     Object.assign(trip, data, {
       ...merged,
+      totalKm,
       vehicleId: references.vehicle._id,
       driverId: references.driver._id,
       firmId: references.firm._id,
       contractId: references.contract._id,
       contractVersionId: contractVersion?._id ?? trip.contractVersionId,
       routeId: merged.routeId || undefined,
+      routeDistanceSnapshot: references.route
+        ? {
+            routeId: references.route._id,
+            routeName: references.route.name,
+            expectedDistanceKm: totalKm,
+            capturedAt: new Date(),
+          }
+        : trip.routeDistanceSnapshot,
+      rateSnapshot,
     });
-    return trip.save();
+    const updatedTrip = await trip.save();
+    if (linkedDraftInvoice) {
+      await InvoiceService.regenerate(String(linkedDraftInvoice._id), updatedBy);
+    }
+    return updatedTrip;
   }
 
   static async getById(id: string) {
-    return this.requireTrip(id);
+    const trip = await this.requireTrip(id);
+    if (!trip.billingInvoiceId) return trip;
+
+    const invoice = await InvoiceModel.findOne({ _id: trip.billingInvoiceId, isDeleted: false }).select('status');
+    return { ...trip.toObject(), billingInvoiceStatus: invoice?.status ?? 'missing' };
   }
 
   static async delete(id: string) {
     const trip = await this.requireTrip(id);
+    await this.requireEditableInvoice(trip);
     if (trip.operationalStatus === 'completed') {
       throw new ConflictError('Completed trips must be cancelled explicitly before deletion');
     }
@@ -136,7 +175,6 @@ export class TripService {
   }
 
   private static async validateReferences(data: TripInput, tripDate: Date) {
-    this.validateKilometers(data);
     const [vehicle, driver, firm, contract, route] = await Promise.all([
       VehicleModel.findOne({ _id: data.vehicleId, isDeleted: false, isActive: true }),
       DriverModel.findOne({ _id: data.driverId, isDeleted: false, isActive: true }),
@@ -159,11 +197,44 @@ export class TripService {
   }
 
   private static validateKilometers(data: { startKm?: number; endKm?: number; totalKm?: number }) {
-    if (data.totalKm === undefined || data.totalKm <= 0) throw new BadRequestError('Total kilometers must be greater than zero');
+    if (data.totalKm !== undefined && data.totalKm <= 0) throw new BadRequestError('Total kilometers must be greater than zero');
     if (data.startKm !== undefined && data.endKm !== undefined) {
       if (data.endKm < data.startKm) throw new BadRequestError('End kilometers cannot be less than start kilometers');
       if (data.totalKm !== data.endKm - data.startKm) throw new BadRequestError('Total kilometers must equal end kilometers minus start kilometers');
     }
+  }
+
+  private static resolveTripDistance(route: { _id: any; name: string; expectedDistanceKm?: number } | null | undefined, routeId?: string | null) {
+    if (!routeId || !route) throw new BadRequestError('A route with configured distance is required for new trips');
+    if (!route.expectedDistanceKm || route.expectedDistanceKm <= 0) {
+      throw new BadRequestError('The selected route must have a positive configured distance');
+    }
+    return route.expectedDistanceKm;
+  }
+
+  private static async captureRateSnapshot(vehicle: InstanceType<typeof VehicleModel>, contractVersion: Awaited<ReturnType<typeof ContractService.getEffectiveVersion>>, tripDate: Date) {
+    const capacityRate = contractVersion.billingRules.capacityRates.find((rate) => Number(rate.capacity) === Number(vehicle.capacity));
+    const globalFuelRate = await HsdRateService.resolveRateForDate(tripDate);
+    const resolved = RateResolutionService.resolve({
+      tripDate,
+      vehicleRates: vehicle.operationalRates
+        ? {
+            hiringChargePerRound: vehicle.operationalRates.hiringChargePerRound,
+            averageKmPerLitre: vehicle.operationalRates.averageKmPerLitre,
+            fuelRatePerLitre: vehicle.operationalRates.fuelRatePerLitre,
+            effectiveFrom: vehicle.operationalRates.effectiveFrom,
+          }
+        : undefined,
+      capacityRate: capacityRate
+        ? {
+            baseHiringRatePerRound: capacityRate.baseHiringRatePerRound,
+            contractualAverageKmPerLitre: capacityRate.contractualAverageKmPerLitre,
+          }
+        : undefined,
+      globalFuelRate,
+      contractFuelRate: contractVersion.billingRules.fuelRatePerLitre,
+    });
+    return { ...resolved, capturedAt: new Date() };
   }
 
   private static getDateRange(fromDate?: Date, toDate?: Date, month?: string) {
@@ -188,5 +259,18 @@ export class TripService {
     const trip = await TripModel.findOne({ _id: id, isDeleted: false });
     if (!trip) throw new NotFoundError('Trip not found');
     return trip;
+  }
+
+  private static async requireEditableInvoice(trip: ITrip) {
+    if (!trip.billingInvoiceId) return null;
+
+    const invoice = await InvoiceModel.findOne({ _id: trip.billingInvoiceId, isDeleted: false }).select('status');
+    if (!invoice) {
+      throw new ConflictError('This trip is linked to an unavailable invoice and cannot be changed');
+    }
+    if (invoice.status !== 'draft') {
+      throw new ConflictError('This trip is locked by an approved or finalized invoice; reopen the invoice before changing it');
+    }
+    return invoice;
   }
 }

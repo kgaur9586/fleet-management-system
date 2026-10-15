@@ -2,7 +2,7 @@ import { ArrowLeft, Save } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button, Card, Alert } from '@/components/common';
-import { Select, TextInput, NumberInput } from '@/components/forms';
+import { DateInput, Select, TextInput, NumberInput } from '@/components/forms';
 import { FirmSelector } from '@/components/business';
 import { firmsApi } from '@/services/firmsApi';
 import { vehiclesApi } from '@/services/vehiclesApi';
@@ -22,6 +22,8 @@ export function VehicleFormPage() {
   const editing = Boolean(id);
   const [firms, setFirms] = useState<Firm[]>([]);
   const [form, setForm] = useState<VehiclePayload>({ registrationNumber: '', vehicleType: '', capacity: 0, make: '', vehicleModel: '', firmId: '', status: 'available' });
+  const [rateForm, setRateForm] = useState({ hiringChargePerRound: '', averageKmPerLitre: '', fuelRatePerLitre: '', effectiveFrom: '' });
+  const [hadOperationalRates, setHadOperationalRates] = useState(false);
   const [loading, setLoading] = useState(editing);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -32,11 +34,22 @@ export function VehicleFormPage() {
       editing && id ? vehiclesApi.get(id) : Promise.resolve(null),
     ]).then(([firmPage, vehicle]) => {
       setFirms(firmPage.data);
-      if (vehicle) setForm({ registrationNumber: vehicle.registrationNumber, vehicleType: vehicle.vehicleType, capacity: vehicle.capacity, make: vehicle.make || '', vehicleModel: vehicle.vehicleModel || '', firmId: typeof vehicle.firmId === 'string' ? vehicle.firmId : vehicle.firmId?._id || '', vehicleNumberPerFirm: vehicle.vehicleNumberPerFirm, status: vehicle.status, metadata: vehicle.metadata });
+      if (vehicle) {
+        setForm({ registrationNumber: vehicle.registrationNumber, vehicleType: vehicle.vehicleType, capacity: vehicle.capacity, make: vehicle.make || '', vehicleModel: vehicle.vehicleModel || '', firmId: typeof vehicle.firmId === 'string' ? vehicle.firmId : vehicle.firmId?._id || '', vehicleNumberPerFirm: vehicle.vehicleNumberPerFirm, status: vehicle.status, metadata: vehicle.metadata });
+        const rates = vehicle.operationalRates;
+        setHadOperationalRates(Boolean(rates));
+        setRateForm({
+          hiringChargePerRound: String(rates?.hiringChargePerRound ?? ''),
+          averageKmPerLitre: String(rates?.averageKmPerLitre ?? ''),
+          fuelRatePerLitre: String(rates?.fuelRatePerLitre ?? ''),
+          effectiveFrom: rates?.effectiveFrom ? new Date(rates.effectiveFrom).toISOString().slice(0, 10) : '',
+        });
+      }
     }).catch((caught) => setError(getApiErrorMessage(caught))).finally(() => setLoading(false));
   }, [editing, id]);
 
   const update = (field: keyof VehiclePayload, value: unknown) => setForm((current) => ({ ...current, [field]: value }));
+  const updateRate = (field: keyof typeof rateForm, value: string) => setRateForm((current) => ({ ...current, [field]: value }));
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -45,15 +58,35 @@ export function VehicleFormPage() {
       setError('Registration number, vehicle type, and a positive capacity are required.');
       return;
     }
+    const hasRateInput = Object.values(rateForm).some((value) => value.trim() !== '');
+    let operationalRates: VehiclePayload['operationalRates'];
+    if (hasRateInput) {
+      const hiringChargePerRound = Number(rateForm.hiringChargePerRound);
+      const averageKmPerLitre = Number(rateForm.averageKmPerLitre);
+      const fuelRatePerLitre = rateForm.fuelRatePerLitre === '' ? undefined : Number(rateForm.fuelRatePerLitre);
+      if (hiringChargePerRound <= 0 || averageKmPerLitre <= 0 || !rateForm.effectiveFrom || (fuelRatePerLitre !== undefined && fuelRatePerLitre <= 0)) {
+        setError('Enter a positive hiring charge and fuel average, an optional positive fuel rate, and an effective date.');
+        return;
+      }
+      operationalRates = {
+        hiringChargePerRound,
+        averageKmPerLitre,
+        fuelRatePerLitre,
+        effectiveFrom: new Date(`${rateForm.effectiveFrom}T00:00:00.000Z`).toISOString(),
+      };
+    } else if (editing && hadOperationalRates) {
+      operationalRates = null;
+    }
+    const payload = { ...form, operationalRates };
     setSaving(true);
     try {
-      if (editing && id) await vehiclesApi.update(id, form);
-      else await vehiclesApi.create(form);
+      if (editing && id) await vehiclesApi.update(id, payload);
+      else await vehiclesApi.create(payload);
       notify.success(editing ? 'Vehicle updated.' : 'Vehicle added.');
       navigate('/vehicles');
     } catch (caught) { setError(getApiErrorMessage(caught)); notify.error(caught); } finally { setSaving(false); }
   }
 
   if (loading) return <div className="route-loading">Loading vehicle...</div>;
-  return <div className="vehicle-page"><div className="page-heading"><div><Link className="back-link" to="/vehicles"><ArrowLeft size={15} /> Vehicles</Link><p className="eyebrow">Fleet master</p><h1>{editing ? 'Edit vehicle' : 'Add vehicle'}</h1><p className="muted">Keep the fleet record factual and operationally useful.</p></div></div>{error && <Alert tone="error" title="Unable to save vehicle">{error}</Alert>}<form onSubmit={submit} className="vehicle-form-grid"><Card title="Vehicle identity" description="The fields used to identify this vehicle in operations."><div className="form-grid"><TextInput id="registrationNumber" label="Registration number" required value={form.registrationNumber || ''} onChange={(event) => update('registrationNumber', event.target.value)} placeholder="e.g. MH12AB1234" /><TextInput id="vehicleType" label="Vehicle type" required value={form.vehicleType || ''} onChange={(event) => update('vehicleType', event.target.value)} placeholder="e.g. Truck" /><NumberInput id="capacity" label="Capacity" required min={0.1} step="any" value={form.capacity || ''} onChange={(event) => update('capacity', Number(event.target.value))} hint="Use the same unit used by your fleet records." /><Select id="status" label="Status" options={statusOptions} value={form.status || 'available'} onChange={(event) => update('status', event.target.value)} /></div></Card><Card title="Assignment" description="A vehicle can be associated with its current billing firm."><FirmSelector value={typeof form.firmId === 'string' ? form.firmId : ''} options={firms.map((firm) => ({ value: firm._id, label: firm.name }))} onChange={(value) => update('firmId', value)} /><NumberInput id="vehicleNumberPerFirm" label="Vehicle number in firm" min={1} step={1} value={form.vehicleNumberPerFirm ?? ''} onChange={(event) => update('vehicleNumberPerFirm', event.target.value === '' ? undefined : Number(event.target.value))} hint="Last segment of the bill number. Leave blank to auto-assign the next free number." /><div className="form-grid"><TextInput id="make" label="Make" value={form.make || ''} onChange={(event) => update('make', event.target.value)} placeholder="e.g. Tata" /><TextInput id="vehicleModel" label="Model" value={form.vehicleModel || ''} onChange={(event) => update('vehicleModel', event.target.value)} placeholder="e.g. Prima" /></div></Card><div className="form-actions"><Button type="button" variant="secondary" onClick={() => navigate('/vehicles')}>Cancel</Button><Button type="submit" loading={saving} icon={<Save size={16} />}>{editing ? 'Save changes' : 'Add vehicle'}</Button></div></form></div>;
+  return <div className="vehicle-page"><div className="page-heading"><div><Link className="back-link" to="/vehicles"><ArrowLeft size={15} /> Vehicles</Link><p className="eyebrow">Fleet master</p><h1>{editing ? 'Edit vehicle' : 'Add vehicle'}</h1><p className="muted">Keep the fleet record factual and operationally useful.</p></div></div>{error && <Alert tone="error" title="Unable to save vehicle">{error}</Alert>}<form onSubmit={submit} className="vehicle-form-grid"><Card title="Vehicle identity" description="The fields used to identify this vehicle in operations."><div className="form-grid"><TextInput id="registrationNumber" label="Registration number" required value={form.registrationNumber || ''} onChange={(event) => update('registrationNumber', event.target.value)} placeholder="e.g. MH12AB1234" /><TextInput id="vehicleType" label="Vehicle type" required value={form.vehicleType || ''} onChange={(event) => update('vehicleType', event.target.value)} placeholder="e.g. Truck" /><NumberInput id="capacity" label="Capacity" required min={0.1} step="any" value={form.capacity || ''} onChange={(event) => update('capacity', Number(event.target.value))} hint="Use the same unit used by your fleet records." /><Select id="status" label="Status" options={statusOptions} value={form.status || 'available'} onChange={(event) => update('status', event.target.value)} /></div></Card><Card title="Assignment" description="A vehicle can be associated with its current billing firm."><FirmSelector value={typeof form.firmId === 'string' ? form.firmId : ''} options={firms.map((firm) => ({ value: firm._id, label: firm.name }))} onChange={(value) => update('firmId', value)} /><NumberInput id="vehicleNumberPerFirm" label="Vehicle number in firm" min={1} step={1} value={form.vehicleNumberPerFirm ?? ''} onChange={(event) => update('vehicleNumberPerFirm', event.target.value === '' ? undefined : Number(event.target.value))} hint="Last segment of the bill number. Leave blank to auto-assign the next free number." /><div className="form-grid"><TextInput id="make" label="Make" value={form.make || ''} onChange={(event) => update('make', event.target.value)} placeholder="e.g. Tata" /><TextInput id="vehicleModel" label="Model" value={form.vehicleModel || ''} onChange={(event) => update('vehicleModel', event.target.value)} placeholder="e.g. Prima" /></div></Card><Card title="Operational rates" description="Optional vehicle-specific rates. Leave all fields blank to keep legacy contract-based billing."><div className="form-grid"><NumberInput id="hiringChargePerRound" label="Hiring charge per round" min={0.01} step="any" value={rateForm.hiringChargePerRound} onChange={(event) => updateRate('hiringChargePerRound', event.target.value)} /><NumberInput id="averageKmPerLitre" label="Average fuel consumption (km/L)" min={0.01} step="any" value={rateForm.averageKmPerLitre} onChange={(event) => updateRate('averageKmPerLitre', event.target.value)} /><NumberInput id="fuelRatePerLitre" label="Fuel rate per litre" min={0.01} step="any" value={rateForm.fuelRatePerLitre} onChange={(event) => updateRate('fuelRatePerLitre', event.target.value)} hint="Optional override; otherwise the global HSD rate remains the fallback." /><DateInput id="operationalRatesEffectiveFrom" label="Rates effective from" value={rateForm.effectiveFrom} onChange={(event) => updateRate('effectiveFrom', event.target.value)} /></div><p className="muted">The hiring charge is a fixed base rate for this vehicle. Phase 3 stores and audits these values; later billing phases will consume them.</p></Card><div className="form-actions"><Button type="button" variant="secondary" onClick={() => navigate('/vehicles')}>Cancel</Button><Button type="submit" loading={saving} icon={<Save size={16} />}>{editing ? 'Save changes' : 'Add vehicle'}</Button></div></form></div>;
 }

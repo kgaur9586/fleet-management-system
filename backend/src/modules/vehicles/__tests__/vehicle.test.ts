@@ -4,6 +4,7 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import app from '../../../app';
 import { VehicleModel } from '../vehicle.model';
 import { UserModel } from '../../auth/auth.model';
+import { AuditLogModel } from '../../audit/audit-log.model';
 import { hashPassword } from '../../../utils/hash';
 import { env } from '../../../config/env';
 
@@ -82,6 +83,53 @@ describe('Vehicle Module', () => {
       expect(response.body.message).toMatch(/already exists/);
     });
 
+    it('stores optional operational rates and audits their initial configuration', async () => {
+      const response = await request(app)
+        .post('/api/v1/vehicles')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          ...validVehicle,
+          registrationNumber: 'UP14XY2026',
+          operationalRates: {
+            hiringChargePerRound: 5200,
+            averageKmPerLitre: 2.2,
+            fuelRatePerLitre: 98.5,
+            effectiveFrom: '2026-06-01T00:00:00.000Z',
+          },
+        });
+
+      expect(response.status).toBe(201);
+      const vehicleId = response.body.data._id;
+      const stored = await VehicleModel.findById(vehicleId);
+      expect(stored?.operationalRates?.hiringChargePerRound.toString()).toBe('5200');
+      expect(stored?.operationalRates?.averageKmPerLitre.toString()).toBe('2.2');
+      expect(stored?.operationalRates?.fuelRatePerLitre?.toString()).toBe('98.5');
+
+      const audit = await AuditLogModel.findOne({
+        action: 'vehicle.operational_rates_updated',
+        entityId: vehicleId,
+      });
+      expect(audit?.userId?.toString()).toBeDefined();
+      expect(audit?.changes?.after).toMatchObject({ hiringChargePerRound: '5200', averageKmPerLitre: '2.2' });
+    });
+
+    it('rejects zero or negative operational rates', async () => {
+      const response = await request(app)
+        .post('/api/v1/vehicles')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          ...validVehicle,
+          operationalRates: {
+            hiringChargePerRound: 0,
+            averageKmPerLitre: 2.2,
+            effectiveFrom: '2026-06-01T00:00:00.000Z',
+          },
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.body.errors[0].path).toContain('operationalRates.hiringChargePerRound');
+    });
+
     it('should fail validation if registration number contains special characters', async () => {
       const response = await request(app)
         .post('/api/v1/vehicles')
@@ -138,6 +186,36 @@ describe('Vehicle Module', () => {
       expect(response.status).toBe(200);
       expect(response.body.data.capacity).toBe(15);
       expect(response.body.data.status).toBe('maintenance');
+    });
+
+    it('audits operational-rate changes with before and after values', async () => {
+      const vehicle = await VehicleModel.create({
+        registrationNumber: 'DL01CC5678',
+        vehicleType: 'Truck',
+        capacity: 10,
+        operationalRates: {
+          hiringChargePerRound: 4000,
+          averageKmPerLitre: 2.5,
+          effectiveFrom: new Date('2026-01-01T00:00:00.000Z'),
+        },
+      });
+
+      const response = await request(app)
+        .patch(`/api/v1/vehicles/${vehicle._id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ operationalRates: {
+          hiringChargePerRound: 4500,
+          averageKmPerLitre: 2.4,
+          effectiveFrom: '2026-07-01T00:00:00.000Z',
+        } });
+
+      expect(response.status).toBe(200);
+      const audit = await AuditLogModel.findOne({
+        action: 'vehicle.operational_rates_updated',
+        entityId: vehicle._id,
+      }).sort({ timestamp: -1 });
+      expect(audit?.changes?.before).toMatchObject({ hiringChargePerRound: '4000', averageKmPerLitre: '2.5' });
+      expect(audit?.changes?.after).toMatchObject({ hiringChargePerRound: '4500', averageKmPerLitre: '2.4' });
     });
   });
 

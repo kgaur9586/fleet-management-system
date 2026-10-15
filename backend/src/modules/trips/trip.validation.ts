@@ -14,12 +14,12 @@ const tripFields = z.object({
   driverId: objectIdSchema,
   firmId: objectIdSchema,
   contractId: objectIdSchema,
-  routeId: objectIdSchema.optional().nullable(),
+  routeId: objectIdSchema,
   pickupLocation: z.string().trim().min(2, 'Pickup location is required'),
   dropLocation: z.string().trim().min(2, 'Drop location is required'),
   startKm: kilometerSchema.optional(),
   endKm: kilometerSchema.optional(),
-  totalKm: z.number().finite().positive('Total kilometers must be greater than zero'),
+  totalKm: z.number().finite().positive('Total kilometers must be greater than zero').optional(),
   operationalStatus: z.enum(['planned', 'in_progress', 'completed', 'cancelled']).optional(),
   toll: z.object({
     amount: z.number().finite().min(0, 'Toll amount cannot be negative'),
@@ -30,21 +30,11 @@ const tripFields = z.object({
   notes: z.string().trim().optional(),
 });
 
-const kilometerConsistency = (data: { startKm?: number; endKm?: number; totalKm?: number }, context: z.RefinementCtx) => {
-  if (data.startKm !== undefined && data.endKm !== undefined && data.totalKm !== undefined) {
-    if (data.endKm < data.startKm) {
-      context.addIssue({ code: 'custom', path: ['endKm'], message: 'End kilometers cannot be less than start kilometers' });
-    } else if (data.totalKm !== data.endKm - data.startKm) {
-      context.addIssue({ code: 'custom', path: ['totalKm'], message: 'Total kilometers must equal end kilometers minus start kilometers' });
-    }
-  }
-};
-
-export const createTripSchema = z.object({ body: tripFields }).superRefine((data, context) => kilometerConsistency(data.body, context));
+export const createTripSchema = z.object({ body: tripFields });
 
 export const updateTripSchema = z.object({
   params: z.object({ id: objectIdSchema }),
-  body: tripFields.partial().superRefine(kilometerConsistency),
+  body: tripFields.partial(),
 });
 
 export const getTripSchema = z.object({ params: z.object({ id: objectIdSchema }) });

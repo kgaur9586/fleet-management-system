@@ -2,6 +2,13 @@
 
 This document describes the backend APIs currently implemented in `backend/src`. It is intentionally based on the running Express routes, Zod validators, controllers, services, and Mongoose models. It does not describe planned APIs or the design documents.
 
+> **Implementation status:** Phase 1 is implemented: trip GET responses include
+> `billingInvoiceStatus`; draft-linked trip edits refresh their draft invoice; approved/finalized
+> invoice-linked trips reject edits/deletes. BR-1 through BR-4 remain pending: trip end dates and
+> snapshots, server-resolved route distance, and vehicle operational rates. The exact compatibility plan is in
+> [`business-rule-revision-2026-10.md`](./business-rule-revision-2026-10.md) §9. This document's
+> request/response contracts below describe the current API until implementation is authorized.
+
 ## 1. Base URL and Transport
 
 The API is mounted under:
@@ -559,5 +566,22 @@ There is no general client-controlled sort parameter in the implemented APIs.
 9. **Route and firm uniqueness is enforced partly in services and partly by MongoDB indexes.** Duplicate errors may be returned as a domain-specific message or the generic `Duplicate entry found`.
 10. **Authentication logout is stateless.** The frontend must remove its token locally; calling logout does not invalidate an already-issued JWT.
 11. **The backend does not expose a client-controlled sort parameter.** List UIs must sort using server order or sort the loaded page locally, which cannot provide globally correct sorting across pages.
-12. **The backend has no invoice/billing calculation endpoints yet.** Contract rules and trip contract-version references are available, but invoice previews, finalized invoices, calculations, and billing snapshots are not implemented.
+12. **Invoice/billing implementation exists.** The Invoices module implements generation, regeneration, approval, finalization, reopen, PDF, and stored line-item calculation snapshots. Older statements that these endpoints are absent are stale. See `backend/src/modules/invoices/invoice.service.ts` and `invoice.model.ts`.
 13. **Error shape is not fully uniform.** Validation errors contain an array, while operational errors often return `errors: null` or omit useful structured codes. Frontend error handling should use HTTP status and `message`, with optional parsing of `errors`.
+
+## 9. Proposed API Contract Changes (Pending Implementation)
+
+This is a target contract summary, not a description of live endpoints.
+
+| Resource | Proposed change | Compatibility |
+|---|---|---|
+| `POST/PATCH /api/v1/trips` | Add optional `tripEndDate`; require `routeId`; server resolves distance from route; keep `startKm`/`endKm` optional and non-authoritative; add trip rate/distance snapshots | Breaking for clients that omit route or rely on submitted `totalKm`; backend/frontend trip workflow must deploy together |
+| `PATCH /api/v1/trips/:id` | **Implemented Phase 1:** reject edits when linked invoice is approved/finalized; draft edits refresh the draft invoice. Reopen unlinks trips. | 409 for locked invoice status |
+| `GET /api/v1/trips/:id` | **Implemented Phase 1:** includes `billingInvoiceStatus` when linked. Future: return `tripEndDate`, `rateSnapshot`, `routeDistanceSnapshot` when present. | Additive |
+| Vehicle create/update | Accept optional `operationalRates` with positive Decimal values | Additive; existing vehicles continue using the contract/global-rate fallback |
+| Route create/update | Require configured distance when route is selected for a new trip | Breaking for routes without distance; owner data cleanup first |
+| Invoice line items | Expose daily calculation details for spanning trips | Breaking for consumers assuming one invoice line per trip; daily allocation rule must be decided first |
+
+**Authority rule (proposed):** frontend displays the selected route's configured distance and vehicle
+rates, but the backend independently resolves and validates both. A client-sent distance or rate is
+never authoritative. Existing invoice snapshot fields remain readable and unchanged.

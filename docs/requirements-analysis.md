@@ -10,7 +10,15 @@
 - **Reference bill image: NIR/06/26-27/11** (UP13DT0632, June 2026)
 
 **Analysis date:** September 2026
-**Status:** Updated with owner-confirmed answers — ready for architecture and implementation planning
+**Status:** Historical requirements baseline with owner-confirmed answers; four business-rule revisions proposed October 2026
+
+> **Revision notice — October 2026.** Four business rules are under revision (multi-day trips and
+> driver wages, vehicle-sourced billing rates, route-sourced trip distance, and rate snapshots).
+> The analysis, cross-module impact, migration strategy and phased plan are recorded in
+> [`business-rule-revision-2026-10.md`](./business-rule-revision-2026-10.md).
+> **Implementation status:** Phase 1 (invoice-trip locking with draft refresh) is implemented;
+> BR-1 through BR-4 remain pending. Sections below that are affected carry an inline revision note.
+> That document also records twelve verified places where this document disagrees with the code.
 
 ---
 
@@ -57,6 +65,13 @@ The system must allow the owner to:
 2. Register one or more **firms** under each company (the billing vendor entities)
 3. Register **vehicles** on the platform and associate each vehicle with a firm
 4. Configure **billing rates** per firm (KM slabs, average by capacity, hiring rate by capacity, HSD rate)
+
+> **Revision note (PROPOSED, pending implementation) — BR-2/BR-4:** Operational rates are proposed
+> to become vehicle-specific (hiring charge, average, and fuel rate), while the contract remains the
+> source of agreement identity and commercial terms such as KM thresholds, toll treatment and other
+> charges. Current code stores no rates on `Vehicle`; the code uses contract-version capacity rates
+> and a global HSD rate. Contracts are not proposed for deletion. See
+> [`business-rule-revision-2026-10.md`](./business-rule-revision-2026-10.md) §5.
 
 This makes the system reusable if the business expands to other factories or the firm structure changes.
 
@@ -189,6 +204,15 @@ A person who drives vehicles on trip assignments.
 
 **Confirmed wage rule:** A driver receives **one full day's wage** for any day they are assigned to a trip, regardless of how many KMs they cover or how many rounds they complete. (1 trip = 1 day = 1 day's wage. 2 trips in same day = still 1 day's wage.)
 
+> **Revision note (PROPOSED, pending implementation) — BR-1 multi-day trips.**
+> The rule above is being generalised, not replaced: a driver is paid for every calendar day on
+> which they are assigned to a trip. A trip that spans Monday→Tuesday must therefore yield two
+> wage days. **As implemented today this is impossible** — `Trip` stores a single `tripDate`, and
+> `SalaryService.generate` counts distinct `tripDate` values, so a two-day run pays one day.
+> See [`business-rule-revision-2026-10.md`](./business-rule-revision-2026-10.md) §4.
+> **Open:** whether wage days depend on `operationalStatus` (Q-4) and whether historical salary
+> records are recalculated (Q-12).
+
 **Key relationships:** Driver → Trip assignments, Wage/salary records
 
 ---
@@ -207,6 +231,13 @@ A reusable pickup-and-drop definition for trip operations.
 | Notes | String | Optional |
 
 **Evidence from bill:** All 29 trips in June for UP13DT0632 ran TIRWAGANJ → CFL at 589 km each day.
+
+> **Revision note (PROPOSED, pending implementation) — BR-3 route-sourced distance.**
+> The route's fixed distance is to become the **authoritative** source of trip distance, resolved
+> server-side. Today the field exists (implemented as `expectedDistanceKm`, not `Fixed KM`) but is
+> **never read by any calculation** — the trip's `totalKm` is supplied by the client.
+> **Open:** whether the stored distance is one-way or round-trip (Q-3).
+> See [`business-rule-revision-2026-10.md`](./business-rule-revision-2026-10.md) §6.
 
 ---
 
@@ -255,6 +286,12 @@ The billing parameters for each vehicle capacity within a contract. This is what
 ---
 
 ### 2.8 Trip (Daily Operation Record)
+
+> **Historical baseline:** This section describes the existing single-date trip design, not the
+> proposed target. The implementation stores one `tripDate`, client-provided `totalKm`, optional
+> `startKm`/`endKm`, and an optional route whose `expectedDistanceKm` is not consumed. Proposed
+> multi-day dates and route-distance snapshots are described in
+> [`business-rule-revision-2026-10.md`](./business-rule-revision-2026-10.md) §§4, 6.
 
 A single operational record of one vehicle making one run on one date for one firm.
 
@@ -495,6 +532,13 @@ Monthly salary calculation →
 
 ### 4.4 Daily Trip Workflow
 
+> **Historical baseline:** The workflow below documents today's single-date, manually-entered
+> distance and contract-rate path. Proposed route-authoritative distance, multi-day duration, and
+> vehicle-rate snapshots are pending implementation. The frontend currently requires odometer
+> readings and derives `totalKm`; the backend independently accepts that client-supplied total and
+> does not read the route's configured distance. See
+> [`business-rule-revision-2026-10.md`](./business-rule-revision-2026-10.md) §§2, 4–7.
+
 ```
 Owner / Operator opens "New Trip" screen →
   Select: date, vehicle (auto-fills: firm, capacity)
@@ -685,6 +729,16 @@ Owner renews →
 
 ### 5.1 Confirmed Billing Rules
 
+> **Revision note (PROPOSED, pending implementation) — BR-2:** Existing contract versions currently
+> supply the capacity average, hiring rate and threshold table; the global HSD rate is preferred for
+> fuel, with the version's fuel rate as fallback. Proposed vehicle-specific rates must not be treated
+> as live behavior until implementation. The revision also requires threshold evaluation against
+> the vehicle's **combined daily distance**. Trips are single-date records, but multiple trips for the
+> same vehicle/date are valid and occur in the reference workbook; current billing applies thresholds
+> per trip line instead. The owner has clarified that the base hiring charge is fixed per vehicle,
+> with the threshold multiplier applied to that vehicle's base rate.
+> See [`business-rule-revision-2026-10.md`](./business-rule-revision-2026-10.md) §5.
+
 | Rule ID | Rule | Evidence / Source |
 |---|---|---|
 | BR-C-01 | HSD Litres = KM / Average (km/L) | Workbook formulas + bill image |
@@ -715,26 +769,44 @@ Owner renews →
 
 ### 5.2 KM-to-Rounds Slab Table (CONFIRMED by owner)
 
+> **Owner clarification — 15 October 2026:** The intended bands are 0–127 km → 0.5 rounds,
+> 127–500 km → 1 round, 500–700 km → 1.5 rounds, and >700 km → 2 rounds. The 0.5 tier is
+> confirmed. To remove range overlap, the implemented interpretation assigns exactly 127 to the
+> second band, exactly 500 to the third, and exactly 700 to the third. This follows prior assumption
+> A-01; change it only if the owner intended 127 km to remain in the 0.5 band. The current code has
+> no global default table; it reads contract-version configuration, and test fixtures now cover the
+> confirmed boundaries.
+
 | Condition | Rounds | Evidence |
 |---|---|---|
-| KM < 127 | 0.5 | Owner-confirmed; consistent with workbook (97, 100, 110 km → 0.5) |
-| 127 ≤ KM < 500 | 1.0 | Owner-confirmed; consistent with workbook (310, 365, 450 km → 1.0) |
-| 500 ≤ KM < 700 | 1.5 | Owner-confirmed; consistent with workbook (589, 652 km → 1.5) |
-| KM ≥ 700 | 2.0 | Owner-confirmed; no workbook example available |
+| 0 ≤ KM < 127 | 0.5 | Owner-confirmed; consistent with workbook (97, 100, 110 km → 0.5) |
+| 127 ≤ KM < 500 | 1.0 | Implemented exact-127 precedence (A-01); workbook has 310, 365, 450 km → 1.0 |
+| 500 ≤ KM ≤ 700 | 1.5 | Owner-confirmed; workbook has 589, 652 km → 1.5; exact 700 now remains 1.5 |
+| KM > 700 | 2.0 | Owner-confirmed; no workbook example above 700 km |
 
 > **Design requirement:** This slab table must be configurable per contract in the admin UI. The owner should be able to change boundaries without a developer. These are the current values; they may change in future contracts.
 
-**Lookup logic (unambiguous — no overlaps):**
+**Implemented lookup logic (assigns KM = 127 to the second band):**
 ```
-if km < 127:   rounds = 0.5
-elif km < 500: rounds = 1.0
-elif km < 700: rounds = 1.5
-else:          rounds = 2.0
+if km < 127:    rounds = 0.5
+elif km < 500:  rounds = 1.0
+elif km <= 700: rounds = 1.5
+else:           rounds = 2.0
 ```
+
+> **Implementation note:** Route and trip schemas permit decimal KM. The existing threshold lookup
+> compares `distanceKm < upToKm`, which cannot exactly distinguish 700 from every possible value
+> above 700 using a single numeric upper threshold. Confirm whether distances are integer-only or
+> implement explicit inclusive/exclusive range semantics.
 
 ---
 
 ### 5.3 Confirmed Capacity → Rate Mapping (Partial)
+
+> **Historical workbook evidence, not the target rate owner:** the sample below is capacity-based.
+> The owner has clarified that each vehicle's base hiring charge is fixed per vehicle; the proposed
+> vehicle configuration replaces capacity lookup for future calculations. The multiplier continues
+> to apply to that fixed per-vehicle base rate.
 
 The following is confirmed from the reference workbook. The complete table for all 6–7 capacity types must be provided by the owner before seeding master data.
 
@@ -964,7 +1036,7 @@ The owner must be able to answer these questions from the dashboard without open
 |---|---|---|
 | A-01 | KM boundary for slab is inclusive on the lower end: KM = 127 → rounds = 1.0 (not 0.5) | Derived from owner's statement "less than 127 → 0.5" |
 | A-02 | KM = 500 exactly → rounds = 1.5 (500 ≤ KM < 700) | Derived from owner's statement |
-| A-03 | KM = 700 exactly → rounds = 2.0 | Derived from owner's statement |
+| A-03 | ~~KM = 700 exactly → rounds = 2.0~~ **SUPERSEDED 15 Oct 2026: KM = 700 → 1.5; only KM > 700 → 2.0** | Latest owner clarification |
 | A-04 | ~~HSD rate scope unknown~~ → **CONFIRMED: HSD rate is a single global rate that changes as per global fuel rates. It is not per-firm or per-contract.** | Owner confirmed 19 Sep 2026 |
 | A-05 | The "Book Number" on the bill (01/2026-2027) is a separate sequential register number, per firm per FY | Observed on reference bill; purpose not confirmed |
 | A-06 | Toll entered per trip equals the factory-billed toll amount (no adjustment needed) | Workbook uses per-trip toll in total calculation |

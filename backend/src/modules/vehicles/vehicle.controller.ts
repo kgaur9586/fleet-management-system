@@ -5,7 +5,7 @@ import { sendSuccess } from '../../common/response';
 export class VehicleController {
   static async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const vehicle = await VehicleService.create(req.body);
+      const vehicle = await VehicleService.create(req.body, req.user?.id);
       sendSuccess(res, 201, 'Vehicle created successfully', vehicle);
     } catch (error) {
       next(error);
@@ -15,7 +15,7 @@ export class VehicleController {
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
       const id = req.params.id as string;
-      const vehicle = await VehicleService.update(id, req.body);
+      const vehicle = await VehicleService.update(id, req.body, req.user?.id);
       sendSuccess(res, 200, 'Vehicle updated successfully', vehicle);
     } catch (error) {
       next(error);

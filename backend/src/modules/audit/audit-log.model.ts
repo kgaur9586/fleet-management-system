@@ -6,6 +6,7 @@ export type AuditAction =
   | 'invoice.approved'
   | 'invoice.finalized'
   | 'invoice.reopened'
+  | 'vehicle.operational_rates_updated'
   | 'payment.recorded'
   | 'contract.version_created'
   | 'driver_advance.created'
