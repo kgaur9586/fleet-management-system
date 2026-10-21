@@ -2,6 +2,7 @@ import PDFDocument from 'pdfkit';
 import { IInvoice } from './invoice.model';
 
 const money = (value: string | number) => Number(value || 0).toFixed(2);
+const wholeMoney = (value: string | number) => Number(value || 0).toFixed(0);
 const num = (value: string | number, digits = 2) => {
   const parsed = Number(value || 0);
   return Number.isInteger(parsed) ? String(parsed) : parsed.toFixed(digits);
@@ -173,7 +174,7 @@ export const renderFinalizedInvoicePdf = (invoice: IInvoice): Promise<Buffer> =>
       money(summary.fuelAmount),
       money(summary.hiringAmount),
       money(summary.tollAmount),
-      money(summary.totalAmount),
+      wholeMoney(summary.totalAmount),
     ].forEach((value, index) => {
       document.text(value, columnX(index) + 2, y + 6, {
         width: columnWidth(index) - 4,
