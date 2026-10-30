@@ -140,11 +140,10 @@ export const renderFinalizedInvoicePdf = (invoice: IInvoice): Promise<Buffer> =>
 
     const showCourier = Number(invoice.summary.courierAmount || 0) > 0;
     const columns = columnsFor(showCourier);
-    const manualMultiplier = invoice.lineItems.some((item) => item.snapshot.hiringMultiplierSource === 'trip');
     const lineValues = (lineItem: IInvoice['lineItems'][number], index: number) => {
       const trip = lineItem.tripSnapshot;
       const snapshot = lineItem.snapshot;
-      const rounds = `${num(snapshot.hiringMultiplier)}${snapshot.hiringMultiplierSource === 'trip' ? '*' : ''}`;
+      const rounds = num(snapshot.hiringMultiplier);
       const byKey: Record<string, string> = {
         sl: String(index + 1),
         date: shortDate(trip.tripDate),
@@ -205,12 +204,6 @@ export const renderFinalizedInvoicePdf = (invoice: IInvoice): Promise<Buffer> =>
     });
     y += 18;
 
-    if (manualMultiplier) {
-      document.fillColor('#1f2933').font('Helvetica').fontSize(7.5);
-      document.text('* Hiring multiplier entered on the trip.', PAGE_LEFT, y + 6);
-      y += 14;
-    }
-
     if (summary.otherBillableAmount > 0) {
       document.fillColor('#1f2933').font('Helvetica').fontSize(7.5);
       document.text(`Other billable charges included: ${money(summary.otherBillableAmount)}`, PAGE_LEFT, y + 6);
@@ -238,10 +231,5 @@ export const renderFinalizedInvoicePdf = (invoice: IInvoice): Promise<Buffer> =>
       align: 'right',
     });
 
-    document
-      .font('Helvetica')
-      .fontSize(6.5)
-      .fillColor('#7b8794')
-      .text('Reproduced from the finalized calculation snapshot stored with this bill.', PAGE_LEFT, 800);
     document.end();
   });

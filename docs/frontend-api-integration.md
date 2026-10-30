@@ -506,7 +506,7 @@ Required fields are `tripDate`, `vehicleId`, `driverId`, `firmId`, `contractId`,
 
 On `PATCH`, omit a field to leave it unchanged. `hiringChargePerRound` cannot be cleared. Send `hiringMultiplier: null` to return that trip to the KM slab. Send `courierCharges: null` or `0` to remove courier. The response includes these fields when they are stored, plus `rateSnapshot` (average, fuel rate, hiring charge, and the source of each). The trip response does not contain the invoice total; billing still calculates that on the server.
 
-Invoice generation reads the trip hiring charge, multiplier, and courier. Each line snapshot may include `hiringMultiplierSource` (`trip` or `km_threshold`), `baseHiringRateSource`, and `courierAmount`. `summary.courierAmount` is the sum of line courier amounts. The PDF adds a COURIER column only when that summary is greater than `0`. A trip multiplier is marked with `*` and a footnote. Dashboard vehicle totals include `courierAmount`, which is `0` when that vehicle has no courier in the month.
+Invoice generation reads the trip hiring charge, multiplier, and courier. Each line snapshot may include `hiringMultiplierSource` (`trip` or `km_threshold`), `baseHiringRateSource`, and `courierAmount`. `summary.courierAmount` is the sum of line courier amounts. The PDF adds a COURIER column only when that summary is greater than `0`. The rounds column shows the multiplier number and does not add a footnote. Dashboard vehicle totals include `courierAmount`, which is `0` when that vehicle has no courier in the month.
 
 Vehicle create and update no longer accept `operationalRates.hiringChargePerRound`. They still accept `averageKmPerLitre` and optional `fuelRatePerLitre`.
 

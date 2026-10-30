@@ -53,7 +53,7 @@ Multiplier:
 
 - Monthly billing, invoice details, billing overview, and the PDF show courier only when some trip on that bill has a courier amount above zero.
 - The PDF inserts a 44-point COURIER column before TOTAL, taking 22 points from FROM and 22 points from TO. Bills with no courier keep the previous columns.
-- A manual multiplier is printed with `*` and a footnote. A slab multiplier has no mark.
+- The PDF rounds column shows the multiplier number. It does not mark a trip-entered multiplier or print a footnote about it.
 - The dashboard vehicle row includes `courierAmount`, using zero when the month has no courier.
 
 ## Backward compatibility
