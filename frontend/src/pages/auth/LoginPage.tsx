@@ -1,4 +1,4 @@
-import { AlertCircle, ClipboardList, Eye, EyeOff, FileText, LoaderCircle, Lock, Mail, ShieldCheck, Truck } from 'lucide-react';
+import { AlertCircle, ArrowRight, ClipboardList, Eye, EyeOff, FileText, LoaderCircle, Lock, Mail, ShieldCheck, Truck } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
@@ -20,6 +20,7 @@ export function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState('');
   const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname || '/';
+  const year = new Date().getFullYear();
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -39,22 +40,40 @@ export function LoginPage() {
 
   return <main className="auth-page">
     <div className="auth-art">
+      <div className="auth-art-glow auth-art-glow-gold" aria-hidden="true" />
+      <div className="auth-art-glow auth-art-glow-teal" aria-hidden="true" />
+      <div className="auth-art-grid" aria-hidden="true" />
+      <svg className="auth-art-route" viewBox="0 0 520 420" fill="none" aria-hidden="true">
+        <path d="M-10 340 C 90 340, 120 220, 220 215 S 330 120, 420 115 S 520 40, 560 10" stroke="rgba(241,173,103,.38)" strokeWidth="2" strokeDasharray="1 11" strokeLinecap="round" />
+        <circle cx="220" cy="215" r="4.5" fill="#f1ad67" opacity=".85" />
+        <circle cx="420" cy="115" r="4.5" fill="#f1ad67" opacity=".6" />
+        <circle cx="-10" cy="340" r="5.5" fill="#fff" opacity=".9" />
+      </svg>
+      <div className="auth-art-top">
+        <div className="auth-art-brand">
+          <span className="brand-mark"><ClipboardList size={18} /></span>
+          <div><strong>Fleet Ledger</strong><span>Operations desk</span></div>
+        </div>
+      </div>
       <div className="auth-art-content">
-        <p className="eyebrow">Fleet operations</p>
-        <h1>Make every kilometre count.</h1>
-        <p>One calm workspace for the people, vehicles, routes, and daily movement behind the business.</p>
+        <p className="eyebrow">Fleet operations platform</p>
+        <h1>Your fleet. Your operations.<br />One platform.</h1>
+        <p>Manage vehicles, drivers, trips, expenses, and billing with complete visibility and control, in one calm workspace.</p>
         <ul className="auth-highlights">
-          {highlights.map(({ icon: Icon, label }) => <li key={label}><span className="auth-highlight-icon"><Icon size={16} /></span>{label}</li>)}
+          {highlights.map(({ icon: Icon, label }, index) => <li key={label} style={{ animationDelay: `${0.12 + index * 0.07}s` }}><span className="auth-highlight-icon"><Icon size={16} /></span>{label}</li>)}
         </ul>
       </div>
-      <div className="auth-art-stamp"><ClipboardList size={18} /> Built for the road ahead</div>
+      <div className="auth-art-footer">
+        <div className="auth-art-stamp"><ClipboardList size={14} /> Built for the road ahead</div>
+        <p className="auth-art-copyright">© {year} Fleet Ledger. All rights reserved.</p>
+      </div>
     </div>
     <section className="auth-form">
       <div className="auth-form-inner">
         <div className="brand-mark large"><ClipboardList size={21} /></div>
-        <p className="eyebrow">Welcome back</p>
-        <h2>Sign in to your desk</h2>
-        <p className="muted">Use your Fleet Ledger administrator account.</p>
+        <p className="eyebrow">Sign in</p>
+        <h2>Welcome back</h2>
+        <p className="muted">Sign in to access your fleet management workspace.</p>
         <form onSubmit={handleSubmit} noValidate>
           <label>
             Email address
@@ -74,7 +93,9 @@ export function LoginPage() {
             </div>
           </label>
           {formError && <p className="form-error auth-form-error" role="alert"><AlertCircle size={14} />{formError}</p>}
-          <button className="primary-button" type="submit" disabled={isLoading}>{isLoading ? <><LoaderCircle size={16} className="spin" /> Signing in...</> : 'Continue'}</button>
+          <button className="primary-button auth-submit" type="submit" disabled={isLoading}>
+            {isLoading ? <><LoaderCircle size={16} className="spin" /> Signing in...</> : <>Sign In <ArrowRight size={15} className="auth-submit-arrow" /></>}
+          </button>
         </form>
       </div>
     </section>
