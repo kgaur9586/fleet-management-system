@@ -2,6 +2,8 @@
 
 **Status: Phases 1–4 implemented on 15 October 2026; Phases 5–7 remain pending. No schema migration or production data change has been made.**
 
+**30 October 2026 addendum.** Trip-level hiring charge, optional hiring multiplier, and optional courier charges are implemented. A trip multiplier bypasses the KM slabs for that trip only and does not implement the pending daily-distance aggregation in Phase 5 / Q-16. Vehicle `operationalRates.hiringChargePerRound` is no longer a billing input. Details: [`trip-level-hiring-and-courier-charges.md`](./trip-level-hiring-and-courier-charges.md).
+
 | Phase | Status | Verification |
 |---|---|---|
 | 0 — Decision lock / baseline | Partial | Threshold bands implemented; Q-18 and later-phase decisions remain. No pre-change full-suite baseline was captured. |
@@ -436,6 +438,8 @@ how its distance is assigned to each date is **OPEN** (Q-2). For multiple runs o
 single daily hiring calculation is represented across invoice lines is also **OPEN** (Q-16). Do not
 apply the daily multiplier independently to every same-day trip line; that can charge the daily
 hiring component more than once.
+
+**Implemented separately on 30 October 2026:** an operator may type `hiringMultiplier` on one trip. Any number greater than zero is final for that trip and bypasses the KM slab. It is not combined with other trips on the same date, so it does not answer Q-16. Leaving the multiplier blank still uses the per-trip KM slab.
 
 Keep calculation units distinct: fuel litres/amount remain based on each trip's distance (or its
 approved per-day allocation if the trip spans dates); actual toll remains attached to its trip; the

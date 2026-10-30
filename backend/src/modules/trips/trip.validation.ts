@@ -8,6 +8,10 @@ const objectIdSchema = z.string().refine((value) => mongoose.Types.ObjectId.isVa
 const dateSchema = z.coerce.date();
 const kilometerSchema = z.number().finite().min(0, 'Kilometers cannot be negative');
 
+const hiringChargeSchema = z.number().finite().positive('Hiring charge must be greater than zero');
+const hiringMultiplierSchema = z.number().finite().positive('Hiring multiplier must be greater than zero');
+const courierChargesSchema = z.number().finite().min(0, 'Courier charges cannot be negative');
+
 const tripFields = z.object({
   tripDate: dateSchema,
   vehicleId: objectIdSchema,
@@ -20,6 +24,9 @@ const tripFields = z.object({
   startKm: kilometerSchema.optional(),
   endKm: kilometerSchema.optional(),
   totalKm: z.number().finite().positive('Total kilometers must be greater than zero').optional(),
+  hiringChargePerRound: hiringChargeSchema,
+  hiringMultiplier: hiringMultiplierSchema.optional(),
+  courierCharges: courierChargesSchema.optional(),
   operationalStatus: z.enum(['planned', 'in_progress', 'completed', 'cancelled']).optional(),
   toll: z.object({
     amount: z.number().finite().min(0, 'Toll amount cannot be negative'),
@@ -34,7 +41,10 @@ export const createTripSchema = z.object({ body: tripFields });
 
 export const updateTripSchema = z.object({
   params: z.object({ id: objectIdSchema }),
-  body: tripFields.partial(),
+  body: tripFields.partial().extend({
+    hiringMultiplier: hiringMultiplierSchema.nullable().optional(),
+    courierCharges: courierChargesSchema.nullable().optional(),
+  }),
 });
 
 export const getTripSchema = z.object({ params: z.object({ id: objectIdSchema }) });

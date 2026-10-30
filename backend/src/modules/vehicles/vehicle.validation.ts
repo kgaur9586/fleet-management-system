@@ -7,7 +7,6 @@ const objectIdSchema = z.string().refine((val) => mongoose.Types.ObjectId.isVali
 });
 const positiveDecimalSchema = z.number().finite().positive();
 const vehicleOperationalRatesSchema = z.object({
-  hiringChargePerRound: positiveDecimalSchema,
   averageKmPerLitre: positiveDecimalSchema,
   fuelRatePerLitre: positiveDecimalSchema.optional(),
   effectiveFrom: z.coerce.date(),

@@ -28,6 +28,7 @@ const mapVehicleTotals = (rows: Array<{
   hiringAmount: number;
   billableToll: number;
   otherBillableAmount: number;
+  courierAmount: number;
   contractualAverages?: string[];
   fuelRates?: string[];
   vehicle?: { registrationNumber?: string; vehicleType?: string }[];
@@ -45,6 +46,7 @@ const mapVehicleTotals = (rows: Array<{
   hiringAmount: Number(row.hiringAmount || 0),
   billableToll: Number(row.billableToll || 0),
   otherBillableAmount: Number(row.otherBillableAmount || 0),
+  courierAmount: Number(row.courierAmount || 0),
   total: Number(row.total || 0),
   count: Number(row.totalTrips || 0),
 }));
@@ -120,6 +122,7 @@ export class DashboardService {
           hiringAmount: { $sum: { $toDouble: '$lineItems.snapshot.hiringAmount' } },
           billableToll: { $sum: { $toDouble: '$lineItems.snapshot.tollAmount' } },
           otherBillableAmount: { $sum: { $toDouble: '$lineItems.snapshot.otherBillableAmount' } },
+          courierAmount: { $sum: { $ifNull: [{ $toDouble: '$lineItems.snapshot.courierAmount' }, 0] } },
           total: { $sum: { $toDouble: '$lineItems.snapshot.totalAmount' } },
         } },
         { $lookup: { from: 'vehicles', localField: '_id', foreignField: '_id', as: 'vehicle' } },

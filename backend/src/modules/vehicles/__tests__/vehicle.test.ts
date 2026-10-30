@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import app from '../../../app';
 import { VehicleModel } from '../vehicle.model';
+import { TripModel } from '../../trips/trip.model';
+import { removeVehicleHiringCharges } from '../../../../scripts/remove-vehicle-hiring-charges';
 import { UserModel } from '../../auth/auth.model';
 import { AuditLogModel } from '../../audit/audit-log.model';
 import { hashPassword } from '../../../utils/hash';
@@ -91,7 +93,6 @@ describe('Vehicle Module', () => {
           ...validVehicle,
           registrationNumber: 'UP14XY2026',
           operationalRates: {
-            hiringChargePerRound: 5200,
             averageKmPerLitre: 2.2,
             fuelRatePerLitre: 98.5,
             effectiveFrom: '2026-06-01T00:00:00.000Z',
@@ -101,7 +102,7 @@ describe('Vehicle Module', () => {
       expect(response.status).toBe(201);
       const vehicleId = response.body.data._id;
       const stored = await VehicleModel.findById(vehicleId);
-      expect(stored?.operationalRates?.hiringChargePerRound.toString()).toBe('5200');
+      expect(stored?.operationalRates).not.toHaveProperty('hiringChargePerRound');
       expect(stored?.operationalRates?.averageKmPerLitre.toString()).toBe('2.2');
       expect(stored?.operationalRates?.fuelRatePerLitre?.toString()).toBe('98.5');
 
@@ -110,7 +111,8 @@ describe('Vehicle Module', () => {
         entityId: vehicleId,
       });
       expect(audit?.userId?.toString()).toBeDefined();
-      expect(audit?.changes?.after).toMatchObject({ hiringChargePerRound: '5200', averageKmPerLitre: '2.2' });
+      expect(audit?.changes?.after).toMatchObject({ averageKmPerLitre: '2.2' });
+      expect(audit?.changes?.after).not.toHaveProperty('hiringChargePerRound');
     });
 
     it('rejects zero or negative operational rates', async () => {
@@ -120,14 +122,13 @@ describe('Vehicle Module', () => {
         .send({
           ...validVehicle,
           operationalRates: {
-            hiringChargePerRound: 0,
-            averageKmPerLitre: 2.2,
+            averageKmPerLitre: 0,
             effectiveFrom: '2026-06-01T00:00:00.000Z',
           },
         });
 
       expect(response.status).toBe(400);
-      expect(response.body.errors[0].path).toContain('operationalRates.hiringChargePerRound');
+      expect(response.body.errors[0].path).toContain('operationalRates.averageKmPerLitre');
     });
 
     it('should fail validation if registration number contains special characters', async () => {
@@ -194,7 +195,6 @@ describe('Vehicle Module', () => {
         vehicleType: 'Truck',
         capacity: 10,
         operationalRates: {
-          hiringChargePerRound: 4000,
           averageKmPerLitre: 2.5,
           effectiveFrom: new Date('2026-01-01T00:00:00.000Z'),
         },
@@ -204,7 +204,6 @@ describe('Vehicle Module', () => {
         .patch(`/api/v1/vehicles/${vehicle._id}`)
         .set('Authorization', `Bearer ${token}`)
         .send({ operationalRates: {
-          hiringChargePerRound: 4500,
           averageKmPerLitre: 2.4,
           effectiveFrom: '2026-07-01T00:00:00.000Z',
         } });
@@ -214,8 +213,9 @@ describe('Vehicle Module', () => {
         action: 'vehicle.operational_rates_updated',
         entityId: vehicle._id,
       }).sort({ timestamp: -1 });
-      expect(audit?.changes?.before).toMatchObject({ hiringChargePerRound: '4000', averageKmPerLitre: '2.5' });
-      expect(audit?.changes?.after).toMatchObject({ hiringChargePerRound: '4500', averageKmPerLitre: '2.4' });
+      expect(audit?.changes?.before).toMatchObject({ averageKmPerLitre: '2.5' });
+      expect(audit?.changes?.after).toMatchObject({ averageKmPerLitre: '2.4' });
+      expect(audit?.changes?.after).not.toHaveProperty('hiringChargePerRound');
     });
   });
 
@@ -244,6 +244,41 @@ describe('Vehicle Module', () => {
         .set('Authorization', `Bearer ${token}`);
       
       expect(listRes.body.data.data.length).toBe(0);
+    });
+  });
+
+  describe('removeVehicleHiringCharges', () => {
+    it('unsets the vehicle hiring charge without changing trips', async () => {
+      const vehicle = await VehicleModel.create({
+        registrationNumber: 'SCRIPT0001',
+        vehicleType: 'Truck',
+        capacity: 10,
+        operationalRates: { averageKmPerLitre: 2.2, effectiveFrom: new Date('2026-01-01T00:00:00.000Z') },
+      });
+      await VehicleModel.collection.updateOne(
+        { _id: vehicle._id },
+        { $set: { 'operationalRates.hiringChargePerRound': mongoose.Types.Decimal128.fromString('5200') } },
+      );
+      const trip = await TripModel.collection.insertOne({
+        vehicleId: vehicle._id,
+        hiringChargePerRound: mongoose.Types.Decimal128.fromString('3000'),
+        rateSnapshot: { hiringChargePerRound: '3000' },
+      });
+
+      const result = await removeVehicleHiringCharges();
+      const stored = await VehicleModel.collection.findOne({ _id: vehicle._id });
+      const storedTrip = await TripModel.collection.findOne({ _id: trip.insertedId });
+
+      expect(result.modified).toBeGreaterThanOrEqual(1);
+      expect(stored?.operationalRates).not.toHaveProperty('hiringChargePerRound');
+      expect(String(stored?.operationalRates?.averageKmPerLitre)).toBe('2.2');
+      expect(String(storedTrip?.hiringChargePerRound)).toBe('3000');
+      expect(storedTrip?.rateSnapshot?.hiringChargePerRound).toBe('3000');
+
+      await removeVehicleHiringCharges();
+      const rerun = await VehicleModel.collection.findOne({ _id: vehicle._id });
+      expect(rerun?.operationalRates).not.toHaveProperty('hiringChargePerRound');
+      await TripModel.collection.deleteOne({ _id: trip.insertedId });
     });
   });
 });

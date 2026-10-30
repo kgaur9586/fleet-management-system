@@ -16,6 +16,9 @@ export interface InvoiceSnapshot {
   hiringAmount: string;
   tollAmount: string;
   otherBillableAmount: string;
+  courierAmount?: string;
+  hiringMultiplierSource?: 'trip' | 'km_threshold';
+  baseHiringRateSource?: string;
   totalAmount: string;
 }
 
@@ -37,6 +40,7 @@ export interface InvoiceLineItem {
     contractVersion: { id: string; version?: number };
     distanceKm: string;
     tollAmount: string;
+    courierAmount?: string;
   };
   snapshot: InvoiceSnapshot;
 }
@@ -73,7 +77,7 @@ export interface Invoice {
   approvedAt?: string;
   finalizedAt?: string;
   lineItems: InvoiceLineItem[];
-  summary: { vehicleCount: number; tripCount: number; totalDistanceKm: number; fuelAmount: number; hiringAmount: number; tollAmount: number; otherBillableAmount: number; totalAmount: number };
+  summary: { vehicleCount: number; tripCount: number; totalDistanceKm: number; fuelAmount: number; hiringAmount: number; tollAmount: number; otherBillableAmount: number; courierAmount?: number; totalAmount: number };
 }
 
 export interface PaymentSummary {

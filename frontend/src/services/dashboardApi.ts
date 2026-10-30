@@ -14,6 +14,7 @@ export interface VehicleTotal {
   hiringAmount: number;
   billableToll: number;
   otherBillableAmount: number;
+  courierAmount?: number;
   total: number;
   count: number;
 }

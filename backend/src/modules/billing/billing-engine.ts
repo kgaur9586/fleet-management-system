@@ -6,6 +6,10 @@ export interface BillingEngineTrip {
   tripId?: string;
   distanceKm: DecimalInput;
   tollAmount?: DecimalInput;
+  /** When set, replaces the contract KM-slab multiplier for this trip. */
+  hiringMultiplier?: DecimalInput;
+  /** Optional loading/unloading (courier) amount. Absent means zero. */
+  courierAmount?: DecimalInput;
 }
 
 export interface BillingEngineVehicle {
@@ -32,10 +36,12 @@ export interface BillingCalculationResult {
   fuelRate: string;
   fuelAmount: string;
   hiringMultiplier: string;
+  hiringMultiplierSource: 'trip' | 'km_threshold';
   baseHiringRate: string;
   hiringAmount: string;
   tollAmount: string;
   otherBillableAmount: string;
+  courierAmount: string;
   totalAmount: string;
   contractId: string;
   contractVersionId: string;
@@ -104,6 +110,21 @@ class Decimal {
   private static ten(power: number) { return 10n ** BigInt(power); }
 }
 
+function positiveDecimal(value: DecimalInput, name: string) {
+  const parsed = Decimal.from(value);
+  const numeric = Number(parsed.toString());
+  if (!Number.isFinite(numeric) || numeric <= 0) throw new BillingRuleConfigurationError(`${name} must be a positive finite number`);
+  return parsed;
+}
+
+function nonNegativeMoney(value: DecimalInput | undefined) {
+  if (value === undefined || value === null || String(value).trim() === '') return Decimal.from(0);
+  const parsed = Decimal.from(value);
+  const numeric = Number(parsed.toString());
+  if (!Number.isFinite(numeric) || numeric < 0) throw new BillingRuleConfigurationError('Courier charges cannot be negative');
+  return parsed.round(MONEY_SCALE);
+}
+
 function findCapacityRule(rules: IBillingRules, capacity: number): ICapacityBillingRule {
   const rule = rules.capacityRates.find((candidate) => candidate.capacity === capacity);
   if (!rule) throw new BillingRuleConfigurationError(`No billing rule exists for vehicle capacity ${capacity}`);
@@ -149,11 +170,13 @@ export function calculateTripBilling(
   const fuelRate = Decimal.from(applicableFuelRate);
   const fuelLitres = distance.divide(average);
   const fuelAmount = fuelLitres.multiply(fuelRate).round(MONEY_SCALE);
-  const hiringMultiplier = findRounds(billingRules, distanceNumber);
+  const tripMultiplier = trip.hiringMultiplier !== undefined && trip.hiringMultiplier !== null && String(trip.hiringMultiplier).trim() !== '';
+  const hiringMultiplier = tripMultiplier ? positiveDecimal(trip.hiringMultiplier!, 'Hiring multiplier') : findRounds(billingRules, distanceNumber);
   const hiringAmount = baseHiringRate.multiply(hiringMultiplier).round(MONEY_SCALE);
   const actualToll = Decimal.from(trip.tollAmount ?? 0);
   const tollAmount = billingRules.tollTreatment === 'actual' ? actualToll.round(MONEY_SCALE) : Decimal.from(0);
   const otherBillableAmount = billingRules.otherBillableCharges.filter((charge) => charge.isActive).reduce((total, charge) => total.add(Decimal.from(charge.amount)), Decimal.from(0)).round(MONEY_SCALE);
-  const totalAmount = fuelAmount.add(hiringAmount).add(tollAmount).add(otherBillableAmount).round(MONEY_SCALE);
-  return { tripId: trip.tripId, distanceKm: distance.toString(), contractualAverage: average.toString(), fuelLitres: fuelLitres.toString(), fuelRate: fuelRate.toString(), fuelAmount: fuelAmount.toString(), hiringMultiplier: hiringMultiplier.toString(), baseHiringRate: baseHiringRate.toString(), hiringAmount: hiringAmount.toString(), tollAmount: tollAmount.toString(), otherBillableAmount: otherBillableAmount.toString(), totalAmount: totalAmount.toString(), contractId: contract.contractId, contractVersionId: contractVersion.contractVersionId, contractVersion: contractVersion.version, vehicleId: vehicle.vehicleId, vehicleCapacity: vehicle.capacity, rounding: { monetaryScale: MONEY_SCALE, monetaryMode: 'ROUND_HALF_UP', intermediateValuesRounded: false } };
+  const courierAmount = nonNegativeMoney(trip.courierAmount);
+  const totalAmount = fuelAmount.add(hiringAmount).add(tollAmount).add(otherBillableAmount).add(courierAmount).round(MONEY_SCALE);
+  return { tripId: trip.tripId, distanceKm: distance.toString(), contractualAverage: average.toString(), fuelLitres: fuelLitres.toString(), fuelRate: fuelRate.toString(), fuelAmount: fuelAmount.toString(), hiringMultiplier: hiringMultiplier.toString(), hiringMultiplierSource: tripMultiplier ? 'trip' as const : 'km_threshold' as const, baseHiringRate: baseHiringRate.toString(), hiringAmount: hiringAmount.toString(), tollAmount: tollAmount.toString(), otherBillableAmount: otherBillableAmount.toString(), courierAmount: courierAmount.toString(), totalAmount: totalAmount.toString(), contractId: contract.contractId, contractVersionId: contractVersion.contractVersionId, contractVersion: contractVersion.version, vehicleId: vehicle.vehicleId, vehicleCapacity: vehicle.capacity, rounding: { monetaryScale: MONEY_SCALE, monetaryMode: 'ROUND_HALF_UP', intermediateValuesRounded: false } };
 }

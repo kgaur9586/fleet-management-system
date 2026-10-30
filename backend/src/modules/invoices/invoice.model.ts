@@ -13,10 +13,13 @@ export interface IInvoiceCalculationSnapshot {
   fuelRate: string;
   fuelAmount: string;
   hiringMultiplier: string;
+  hiringMultiplierSource?: 'trip' | 'km_threshold';
   baseHiringRate: string;
+  baseHiringRateSource?: string;
   hiringAmount: string;
   tollAmount: string;
   otherBillableAmount: string;
+  courierAmount?: string;
   totalAmount: string;
   contractId: string;
   contractVersionId: string;
@@ -52,6 +55,7 @@ export interface IInvoiceLineItem {
     contractVersion: { id: string; version?: number };
     distanceKm: string;
     tollAmount: string;
+    courierAmount?: string;
   };
   vehicleSnapshot: {
     registrationNumber: string;
@@ -116,6 +120,7 @@ export interface IInvoice extends Document {
     hiringAmount: number;
     tollAmount: number;
     otherBillableAmount: number;
+    courierAmount: number;
     totalAmount: number;
   };
   duplicateTripGuard?: {
@@ -192,6 +197,7 @@ const invoiceSchema = new Schema<IInvoice>(
       hiringAmount: { type: Number, default: 0 },
       tollAmount: { type: Number, default: 0 },
       otherBillableAmount: { type: Number, default: 0 },
+      courierAmount: { type: Number, default: 0 },
       totalAmount: { type: Number, default: 0 },
     },
     duplicateTripGuard: {

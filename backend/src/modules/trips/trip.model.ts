@@ -16,6 +16,12 @@ export interface ITrip extends Document {
   startKm?: number;
   endKm?: number;
   totalKm: number;
+  /** Hiring rate entered for this trip. Absent on trips created before trip-level hiring. */
+  hiringChargePerRound?: mongoose.Types.Decimal128;
+  /** When absent, billing uses the contract KM-slab multiplier. */
+  hiringMultiplier?: number;
+  /** Optional loading/unloading charge. Absent means it is not billed. */
+  courierCharges?: mongoose.Types.Decimal128;
   routeDistanceSnapshot?: {
     routeId: mongoose.Types.ObjectId;
     routeName: string;
@@ -23,12 +29,14 @@ export interface ITrip extends Document {
     capturedAt: Date;
   };
   rateSnapshot?: {
-    hiringChargePerRound: string;
+    hiringChargePerRound?: string;
+    hiringMultiplier?: string;
     averageKmPerLitre: string;
     fuelRatePerLitre: string;
     capturedAt: Date;
     sources: {
-      hiringChargePerRound: 'vehicle' | 'contract_capacity';
+      hiringChargePerRound?: 'trip' | 'trip_snapshot' | 'vehicle' | 'contract_capacity';
+      hiringMultiplier?: 'trip';
       averageKmPerLitre: 'vehicle' | 'contract_capacity';
       fuelRatePerLitre: 'vehicle' | 'global_hsd' | 'contract_fallback';
     };
@@ -62,6 +70,9 @@ const tripSchema = new Schema<ITrip>(
     startKm: { type: Number, min: 0 },
     endKm: { type: Number, min: 0 },
     totalKm: { type: Number, required: true, min: 0 },
+    hiringChargePerRound: { type: Schema.Types.Decimal128, min: 0 },
+    hiringMultiplier: { type: Number, min: 0 },
+    courierCharges: { type: Schema.Types.Decimal128, min: 0 },
     routeDistanceSnapshot: { type: Schema.Types.Mixed, default: undefined },
     rateSnapshot: { type: Schema.Types.Mixed, default: undefined },
     operationalStatus: {
