@@ -376,6 +376,62 @@ describe('Monthly invoice lifecycle and snapshot generation', () => {
     expect(String(relinkedTrip?.billingInvoiceId)).toBe(invoiceId);
   });
 
+  it('adds courier charges once and bills each trip at its own hiring charge', async () => {
+    const { firm, vehicle, driver, contract, contractVersion } = await createFirmAndVehicleDriverContract();
+    await TripModel.create({
+      tripDate: new Date('2026-03-10T00:00:00.000Z'),
+      vehicleId: vehicle._id,
+      driverId: driver._id,
+      firmId: firm._id,
+      contractId: contract._id,
+      contractVersionId: contractVersion._id,
+      pickupLocation: 'Factory',
+      dropLocation: 'Market',
+      totalKm: 120,
+      operationalStatus: 'completed',
+      toll: { amount: 0 },
+      hiringChargePerRound: 3000,
+      hiringMultiplier: 1,
+      courierCharges: 200,
+    });
+    await TripModel.create({
+      tripDate: new Date('2026-03-12T00:00:00.000Z'),
+      vehicleId: vehicle._id,
+      driverId: driver._id,
+      firmId: firm._id,
+      contractId: contract._id,
+      contractVersionId: contractVersion._id,
+      pickupLocation: 'Factory',
+      dropLocation: 'Depot',
+      totalKm: 120,
+      operationalStatus: 'completed',
+      toll: { amount: 0 },
+      hiringChargePerRound: 8000,
+      hiringMultiplier: 2,
+    });
+
+    const response = await request(app)
+      .post('/api/v1/invoices/generate')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ firmId: String(firm._id), vehicleId: String(vehicle._id), month: 3, year: 2026 });
+
+    expect(response.status).toBe(201);
+    const lines = response.body.data.lineItems;
+    expect(lines).toHaveLength(2);
+    const courierLine = lines.find((line: { snapshot: { courierAmount: string } }) => line.snapshot.courierAmount === '200');
+    const plainLine = lines.find((line: { snapshot: { courierAmount: string } }) => line.snapshot.courierAmount === '0');
+    expect(courierLine.snapshot.hiringAmount).toBe('3000');
+    expect(courierLine.snapshot.hiringMultiplier).toBe('1');
+    expect(plainLine.snapshot.hiringAmount).toBe('16000');
+    expect(plainLine.snapshot.hiringMultiplier).toBe('2');
+    expect(response.body.data.summary.courierAmount).toBe(200);
+    const componentTotal = lines.reduce((sum: number, line: { snapshot: { fuelAmount: string; hiringAmount: string; tollAmount: string; otherBillableAmount: string; courierAmount: string } }) => (
+      sum + Number(line.snapshot.fuelAmount) + Number(line.snapshot.hiringAmount) + Number(line.snapshot.tollAmount) + Number(line.snapshot.otherBillableAmount) + Number(line.snapshot.courierAmount)
+    ), 0);
+    expect(response.body.data.summary.totalAmount).toBeCloseTo(componentTotal, 2);
+    expect(response.body.data.summary.totalAmount).toBeCloseTo(Number(plainLine.snapshot.totalAmount) + Number(courierLine.snapshot.totalAmount), 2);
+  });
+
   it('rejects PDF downloads until the invoice is finalized', async () => {
     const { firm, vehicle, driver, contract, contractVersion } = await createFirmAndVehicleDriverContract();
     await TripModel.create({

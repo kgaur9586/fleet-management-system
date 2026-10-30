@@ -64,6 +64,25 @@ hiringAmount = baseHiringRatePerRound * configuredRounds
 
 The engine does not invent a rule when no configured threshold matches; it throws `BillingRuleConfigurationError`.
 
+### Trip hiring charge, multiplier, and courier (implemented 30 October 2026)
+
+New and edited trips supply the hiring charge. The engine does not read `vehicle.operationalRates.hiringChargePerRound`. That vehicle field has been removed from the schema. A one-off script, `npm run remove-vehicle-hiring-charges` in `backend`, unsets any values still stored in MongoDB. It does not rewrite trips or invoices, and it has not been run against the live database as part of this change.
+
+```text
+hiringAmount = tripHiringChargePerRound × multiplier
+courierAmount = trip courier charges, or 0 when the trip omits them
+totalAmount = fuelAmount + hiringAmount + tollAmount + otherBillableAmount + courierAmount
+```
+
+Multiplier precedence:
+
+1. Use `trip.hiringMultiplier` when the operator typed a number greater than zero. The result then sets `hiringMultiplierSource` to `trip`.
+2. Otherwise select the KM slab above. The result sets `hiringMultiplierSource` to `km_threshold`.
+
+The caller passes `baseHiringRatePerRound` from the trip field, or from the trip's preserved `rateSnapshot.hiringChargePerRound` when the trip field is absent. If neither exists, the engine still falls back to the contract capacity rate so older unbilled trips and existing fixtures keep calculating. That fallback is not used for a new trip: create validation requires a positive hiring charge. Vehicle average and fuel rate resolution are unchanged. Courier is a billable pass-through; it is not an expense and it is not a toll treatment.
+
+KM slabs themselves are unchanged: `<127 → 0.5`, `127 to <500 → 1`, `500 through 700 → 1.5`, `>700 → 2`. A trip multiplier applies to that trip only. It does not combine with other trips on the same day. See [`trip-level-hiring-and-courier-charges.md`](./trip-level-hiring-and-courier-charges.md).
+
 ### Boundary semantics
 
 Implemented in Phase 2: `<127 → 0.5`, `127 through <500 → 1`, `500 through 700 → 1.5`, and `>700 → 2`. Exactly 127 is assigned to the 1-round row, following the prior documented lower-bound assumption. Decimal distances are supported: 700.1 uses 2 rounds. Threshold rows are sorted defensively by the engine; contract API validation continues to require ascending, non-overlapping boundaries and a final unlimited row. Boundary tests now align with these rules.
@@ -100,10 +119,12 @@ fuelLitres
 fuelRate
 fuelAmount
 hiringMultiplier
+hiringMultiplierSource
 baseHiringRate
 hiringAmount
 tollAmount
 otherBillableAmount
+courierAmount
 totalAmount
 contractId
 contractVersionId
@@ -133,10 +154,10 @@ revision changes the caller's rate sources, not the meaning of the hiring formul
 ```text
 fuelLitres = dailyDistanceKm / vehicle.averageKmPerLitre
 fuelAmount = fuelLitres * applicableFuelRate
-hiringAmount = vehicle.hiringChargePerRound * roundsForDailyDistance
+hiringAmount = tripHiringChargePerRound * roundsForDailyDistance
 ```
 
-The hiring charge remains **currency per round**, not currency per kilometre. Contract versions
+The hiring charge remains **currency per round**, not currency per kilometre. As of 30 October 2026 the charge is entered on the trip, not read from the vehicle. A trip-level multiplier, when set, replaces the KM-slab rounds for that trip. Daily-distance aggregation (Q-16) is still open and is not implemented by the trip multiplier. Contract versions
 remain necessary for commercial terms and threshold configuration. Vehicle rates should be resolved
 before calling the pure engine, with existing contract capacity rates and global HSD history retained
 as a legacy fallback until migration is complete.

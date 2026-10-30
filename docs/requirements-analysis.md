@@ -703,7 +703,7 @@ Owner enters contractor charge →
   Category = Loading / Unloading
   Stored as actual company expense
 
-NOTE: Whether this appears on factory bills is UNCONFIRMED (see remaining questions).
+NOTE: Company expense records stay off the factory bill. As of 30 October 2026, the same commercial charge can be billed only when an operator types an optional courier amount on the trip. See [`trip-level-hiring-and-courier-charges.md`](./trip-level-hiring-and-courier-charges.md) and OQ-09.
 ```
 
 ---
@@ -1053,7 +1053,7 @@ The owner must be able to answer these questions from the dashboard without open
 |---|---|---|---|
 | AMB-01 | HSD Rate scope | ~~Is HSD rate global or per-contract?~~ | ✅ **RESOLVED** — Global rate; changes with global fuel prices |
 | AMB-02 | Toll billability | ~~Is toll always billable?~~ | ✅ **RESOLVED** — Toll is always billed for all 4 firms, whenever toll is incurred |
-| AMB-03 | Loading/unloading on factory bill | Does any firm currently include loading/unloading charges on the factory bill? If yes, how is it calculated? | ⚠️ **OPEN** — Owner must confirm |
+| AMB-03 | Loading/unloading on factory bill | Does any firm currently include loading/unloading charges on the factory bill? If yes, how is it calculated? | ✅ **RESOLVED 30 Oct 2026** — Optional courier amount entered on the trip. Expense-module loading/unloading is not copied onto the bill. |
 | AMB-04 | Rounding point | ~~Where does rounding happen?~~ | ✅ **RESOLVED** — Rounding happens per trip row (each trip line is rounded individually) |
 | AMB-05 | Book number purpose | The reference bill shows "Book No: 01/2026-2027" separate from the Bill Number. Is this a physical register book number? Auto-generated? | ⚠️ **OPEN** — Needs clarification before PDF generation |
 | AMB-06 | Bill reopen numbering | When a finalized bill is reopened and re-finalized, does the bill number stay the same? | ⚠️ **OPEN** — Not yet defined |
@@ -1071,7 +1071,7 @@ The owner must be able to answer these questions from the dashboard without open
 | Q-05 | **What is the "Book Number"** on the bill (01/2026-2027)? Physical register? Auto-generated? | Medium — blocks PDF generation |
 | Q-06 | **Are factory bills subject to GST?** If yes, rate and display format? | Medium — blocks PDF generation |
 | Q-07 | **Can you provide a second reference bill from a different firm** to verify the format is consistent? | Low — useful for validation |
-| Q-08 | **Does any firm include loading/unloading charges on the factory bill?** | Medium — blocks expense module |
+| Q-08 | **Does any firm include loading/unloading charges on the factory bill?** | ✅ **RESOLVED 30 Oct 2026** — Optional trip courier charge. The expense module is unchanged. |
 | Q-09 | When a finalized bill is reopened and re-finalized, does the bill number stay the same? | Low — can be deferred |
 | Q-10 | What happens if a vehicle moves from one firm to another — does it get a new vehicle number? | Low — can be deferred |
 
@@ -1089,5 +1089,5 @@ The owner must be able to answer these questions from the dashboard without open
 | OQ-06 | Toll source / entry method | ✅ **RESOLVED** — Entered manually per trip; toll always billable for all 4 firms |
 | OQ-07 | Bill granularity | ✅ **RESOLVED** — One bill per vehicle per firm per month |
 | OQ-08 | Contract changes / effective dates | ✅ **RESOLVED** — New contract version created; effective dates mandatory |
-| OQ-09 | Loading/unloading on factory bill | ⚠️ **OPEN** — Internal expense confirmed; factory billability not confirmed |
+| OQ-09 | Loading/unloading on factory bill | ✅ **RESOLVED 30 Oct 2026** — Internal expense remains a company cost. The factory bill adds the trip's optional courier amount when the operator enters one. |
 | OQ-10 | Driver wage counting | ✅ **RESOLVED** — 1 calendar day = 1 day's wage; 2 trips same day = still 1 day |

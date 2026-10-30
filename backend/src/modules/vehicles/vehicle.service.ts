@@ -192,7 +192,6 @@ export class VehicleService {
   private static toOperationalRateSnapshot(rates: IVehicle['operationalRates']) {
     if (!rates) return undefined;
     return {
-      hiringChargePerRound: rates.hiringChargePerRound.toString(),
       averageKmPerLitre: rates.averageKmPerLitre.toString(),
       fuelRatePerLitre: rates.fuelRatePerLitre?.toString(),
       effectiveFrom: rates.effectiveFrom.toISOString(),

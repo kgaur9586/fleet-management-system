@@ -1647,7 +1647,7 @@ the **implemented** Mongoose models, not a replacement schema and not a migratio
 
 | Model | Proposed field/decision | Compatibility and history rule |
 |---|---|---|
-| `Vehicle` | Optional `operationalRates` subdocument: `hiringChargePerRound`, `averageKmPerLitre`, optional `fuelRatePerLitre`, effective/capture metadata | Keep optional during rollout. Resolve missing values through existing contract capacity rates/global HSD rate until each vehicle is configured. Never store rates in unvalidated `metadata`. |
+| `Vehicle` | Optional `operationalRates` subdocument: `averageKmPerLitre` and optional `fuelRatePerLitre`. **Implemented 30 Oct 2026:** `hiringChargePerRound` is not part of the vehicle schema. Run `npm run remove-vehicle-hiring-charges` to unset leftover values. The script does not change trips or invoices. | Average falls back to the contract capacity rate. Fuel falls back to the global HSD rate, then the contract. Hiring charge is entered on the trip. |
 | `Route` | Continue `expectedDistanceKm`; require it for routes used on new trips after owner backfill. Add one-way/round-trip meaning only after Q-3 is answered. | Do not update existing trips when a route changes. |
 | `Trip` | Optional `tripEndDate`, `rateSnapshot`, and `routeDistanceSnapshot`; keep `startKm` and `endKm` for legacy display/odometer history | Missing new snapshots mean legacy path. Do not backfill historical completed or billed trips from current vehicle/route values. |
 | `Trip` | Keep `contractId` and `contractVersionId` required during this revision | Existing trips/invoices depend on both references; contracts remain for commercial terms and traceability. |
@@ -1656,11 +1656,28 @@ the **implemented** Mongoose models, not a replacement schema and not a migratio
 
 ### Proposed snapshot authority
 
-1. Vehicle rates are the source for future trips.
+1. Vehicle average and optional fuel rate are the source for future trips. The hiring charge is entered on the trip (30 October 2026).
 2. A trip captures the rates and route distance at creation; in-progress trips do not silently follow
    later master-data edits. An explicit audited re-price is a separate action if approved.
 3. Invoice line-item snapshots remain the definitive record of billed amounts. Draft regeneration
    behavior must be confirmed before it changes from today's re-price behavior (Q-7).
+
+### Implemented 30 October 2026 — trip hiring charge and courier
+
+These fields are on the live Mongoose models. "Absent" means the path is unset. A stored `0` courier is treated as absent and is not kept.
+
+| Model | Field | Meaning when absent |
+|---|---|---|
+| `Trip` | `hiringChargePerRound` (Decimal128, optional) | Legacy trip. Billing uses `rateSnapshot.hiringChargePerRound` when that snapshot has one, otherwise the contract capacity rate. New API creates require a positive value. |
+| `Trip` | `hiringMultiplier` (Number, optional, any number greater than zero) | The KM slab selects the multiplier. |
+| `Trip` | `courierCharges` (Decimal128, optional) | Courier contribution is `0`. Blank and `0` are stored as absent. |
+| `Trip.rateSnapshot` | `hiringChargePerRound` and `sources.hiringChargePerRound` | Optional so older snapshots stay valid. Sources include `trip`, `trip_snapshot`, and the legacy values `vehicle` and `contract_capacity`. |
+| `Invoice.lineItems[].snapshot` | `hiringMultiplierSource`, `baseHiringRateSource`, `courierAmount` | Older invoices omit them. Finalized invoices are not recalculated. `courierAmount` on a new calculation is `0` when the trip has no courier. |
+| `Invoice.lineItems[].tripSnapshot` | `courierAmount` | Same as the line calculation. Omitted on older invoices. |
+| `Invoice.summary` | `courierAmount` (Number, default `0`) | No courier on that bill. A later save of an old invoice may fill the default `0` without changing `totalAmount`. |
+| Dashboard vehicle row | `courierAmount` | `0` when no billed trip in the month has courier. |
+
+`baseHiringRateSource` on a newly generated line is `trip` when the trip field is set, otherwise the snapshot source, otherwise `contract_capacity`.
 
 ### Migration gates
 

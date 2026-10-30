@@ -17,60 +17,74 @@ const PAGE_LEFT = 32;
 const PAGE_RIGHT = 563;
 const TABLE_WIDTH = PAGE_RIGHT - PAGE_LEFT;
 
-/** Columns follow the reference bill: SL, DATE, FROM, TO, KM, ROUNDS, AVG, HSD LTR, HSD RATE, HSD AMT, HIRING, TOLL, TOTAL. */
-const COLUMNS = [
-  { label: 'SL\nNO.', width: 22, align: 'center' as const },
-  { label: 'DATE', width: 42, align: 'center' as const },
-  { label: 'FROM', width: 60, align: 'left' as const },
-  { label: 'TO', width: 50, align: 'left' as const },
-  { label: 'KM', width: 32, align: 'right' as const },
-  { label: 'ROUNDS\n(BY KMS)', width: 42, align: 'right' as const },
-  { label: 'AVG', width: 28, align: 'right' as const },
-  { label: 'HSD\n(LTR.)', width: 42, align: 'right' as const },
-  { label: 'HSD\nRATE', width: 38, align: 'right' as const },
-  { label: 'HSD\nAMOUNT', width: 52, align: 'right' as const },
-  { label: 'HIRING\nCHARGE', width: 48, align: 'right' as const },
-  { label: 'TOLL\nAMOUNT', width: 44, align: 'right' as const },
-  { label: 'TOTAL\nAMOUNT', width: 31, align: 'right' as const },
+type BillColumn = { key: string; label: string; width: number; align: 'left' | 'center' | 'right' };
+
+/** Columns follow the reference bill. Courier is inserted only when the bill has courier charges. */
+const baseColumns = (): BillColumn[] => [
+  { key: 'sl', label: 'SL\nNO.', width: 22, align: 'center' },
+  { key: 'date', label: 'DATE', width: 42, align: 'center' },
+  { key: 'from', label: 'FROM', width: 60, align: 'left' },
+  { key: 'to', label: 'TO', width: 50, align: 'left' },
+  { key: 'km', label: 'KM', width: 32, align: 'right' },
+  { key: 'rounds', label: 'ROUNDS\n(BY KMS)', width: 42, align: 'right' },
+  { key: 'avg', label: 'AVG', width: 28, align: 'right' },
+  { key: 'litres', label: 'HSD\n(LTR.)', width: 42, align: 'right' },
+  { key: 'rate', label: 'HSD\nRATE', width: 38, align: 'right' },
+  { key: 'hsd', label: 'HSD\nAMOUNT', width: 52, align: 'right' },
+  { key: 'hiring', label: 'HIRING\nCHARGE', width: 48, align: 'right' },
+  { key: 'toll', label: 'TOLL\nAMOUNT', width: 44, align: 'right' },
+  { key: 'total', label: 'TOTAL\nAMOUNT', width: 31, align: 'right' },
 ];
 
-const columnX = (index: number) =>
-  PAGE_LEFT + COLUMNS.slice(0, index).reduce((total, column) => total + column.width, 0);
+const columnsFor = (showCourier: boolean): BillColumn[] => {
+  const columns = baseColumns();
+  if (!showCourier) return columns;
+  const from = columns.find((column) => column.key === 'from');
+  const to = columns.find((column) => column.key === 'to');
+  if (from) from.width -= 22;
+  if (to) to.width -= 22;
+  const totalIndex = columns.findIndex((column) => column.key === 'total');
+  columns.splice(totalIndex, 0, { key: 'courier', label: 'COURIER\nCHARGE', width: 44, align: 'right' });
+  return columns;
+};
+
+const columnX = (columns: BillColumn[], index: number) =>
+  PAGE_LEFT + columns.slice(0, index).reduce((total, column) => total + column.width, 0);
 
 // The final column absorbs rounding slack so the grid ends flush with the page edge.
-const columnWidth = (index: number) =>
-  index === COLUMNS.length - 1 ? PAGE_RIGHT - columnX(index) : COLUMNS[index].width;
+const columnWidth = (columns: BillColumn[], index: number) =>
+  index === columns.length - 1 ? PAGE_RIGHT - columnX(columns, index) : columns[index].width;
 
-const drawDividers = (document: PDFKit.PDFDocument, y: number, height: number, colour: string) => {
-  COLUMNS.forEach((_, index) => {
+const drawDividers = (document: PDFKit.PDFDocument, columns: BillColumn[], y: number, height: number, colour: string) => {
+  columns.forEach((_, index) => {
     if (index === 0) return;
-    document.moveTo(columnX(index), y).lineTo(columnX(index), y + height).strokeColor(colour).lineWidth(0.4).stroke();
+    document.moveTo(columnX(columns, index), y).lineTo(columnX(columns, index), y + height).strokeColor(colour).lineWidth(0.4).stroke();
   });
 };
 
-const drawTableHeader = (document: PDFKit.PDFDocument, y: number) => {
+const drawTableHeader = (document: PDFKit.PDFDocument, y: number, columns: BillColumn[]) => {
   const height = 26;
   document.rect(PAGE_LEFT, y, TABLE_WIDTH, height).fillAndStroke('#e8eef4', '#17324d');
   document.fillColor('#17324d').font('Helvetica-Bold').fontSize(5.6);
-  COLUMNS.forEach((column, index) => {
-    document.text(column.label, columnX(index) + 2, y + 6, { width: columnWidth(index) - 4, align: 'center' });
+  columns.forEach((column, index) => {
+    document.text(column.label, columnX(columns, index) + 2, y + 6, { width: columnWidth(columns, index) - 4, align: 'center' });
   });
-  drawDividers(document, y, height, '#17324d');
+  drawDividers(document, columns, y, height, '#17324d');
   return y + height;
 };
 
-const drawRow = (document: PDFKit.PDFDocument, y: number, values: string[]) => {
+const drawRow = (document: PDFKit.PDFDocument, y: number, columns: BillColumn[], values: string[]) => {
   const height = 16;
   document.rect(PAGE_LEFT, y, TABLE_WIDTH, height).strokeColor('#8ea6bd').lineWidth(0.4).stroke();
   document.fillColor('#1f2933').font('Helvetica').fontSize(6.4);
   values.forEach((value, index) => {
-    document.text(value, columnX(index) + 2, y + 5, {
-      width: columnWidth(index) - 4,
-      align: COLUMNS[index].align,
+    document.text(value, columnX(columns, index) + 2, y + 5, {
+      width: columnWidth(columns, index) - 4,
+      align: columns[index].align,
       lineBreak: false,
     });
   });
-  drawDividers(document, y, height, '#8ea6bd');
+  drawDividers(document, columns, y, height, '#8ea6bd');
   return y + height;
 };
 
@@ -124,30 +138,40 @@ export const renderFinalizedInvoicePdf = (invoice: IInvoice): Promise<Buffer> =>
       align: 'right',
     });
 
-    let y = drawTableHeader(document, 158);
+    const showCourier = Number(invoice.summary.courierAmount || 0) > 0;
+    const columns = columnsFor(showCourier);
+    const manualMultiplier = invoice.lineItems.some((item) => item.snapshot.hiringMultiplierSource === 'trip');
+    const lineValues = (lineItem: IInvoice['lineItems'][number], index: number) => {
+      const trip = lineItem.tripSnapshot;
+      const snapshot = lineItem.snapshot;
+      const rounds = `${num(snapshot.hiringMultiplier)}${snapshot.hiringMultiplierSource === 'trip' ? '*' : ''}`;
+      const byKey: Record<string, string> = {
+        sl: String(index + 1),
+        date: shortDate(trip.tripDate),
+        from: trip.pickupLocation,
+        to: trip.dropLocation,
+        km: num(snapshot.distanceKm, 0),
+        rounds,
+        avg: num(snapshot.contractualAverage),
+        litres: num(snapshot.fuelLitres, 1),
+        rate: money(snapshot.fuelRate),
+        hsd: money(snapshot.fuelAmount),
+        hiring: money(snapshot.hiringAmount),
+        toll: money(snapshot.tollAmount),
+        courier: money(snapshot.courierAmount || 0),
+        total: money(snapshot.totalAmount),
+      };
+      return columns.map((column) => byKey[column.key] ?? '');
+    };
+
+    let y = drawTableHeader(document, 158, columns);
 
     invoice.lineItems.forEach((lineItem, index) => {
       if (y > 700) {
         document.addPage();
-        y = drawTableHeader(document, 40);
+        y = drawTableHeader(document, 40, columns);
       }
-      const trip = lineItem.tripSnapshot;
-      const snapshot = lineItem.snapshot;
-      y = drawRow(document, y, [
-        String(index + 1),
-        shortDate(trip.tripDate),
-        trip.pickupLocation,
-        trip.dropLocation,
-        num(snapshot.distanceKm, 0),
-        num(snapshot.hiringMultiplier),
-        num(snapshot.contractualAverage),
-        num(snapshot.fuelLitres, 1),
-        money(snapshot.fuelRate),
-        money(snapshot.fuelAmount),
-        money(snapshot.hiringAmount),
-        money(snapshot.tollAmount),
-        money(snapshot.totalAmount),
-      ]);
+      y = drawRow(document, y, columns, lineValues(lineItem, index));
     });
 
     if (y > 690) {
@@ -161,28 +185,31 @@ export const renderFinalizedInvoicePdf = (invoice: IInvoice): Promise<Buffer> =>
 
     document.rect(PAGE_LEFT, y, TABLE_WIDTH, 18).fillAndStroke('#e8eef4', '#17324d');
     document.fillColor('#17324d').font('Helvetica-Bold').fontSize(6.6);
-    [
-      '',
-      '',
-      'GRAND TOTAL:-',
-      '',
-      num(summary.totalDistanceKm, 0),
-      num(totalRounds),
-      '',
-      num(totalLitres, 1),
-      '',
-      money(summary.fuelAmount),
-      money(summary.hiringAmount),
-      money(summary.tollAmount),
-      wholeMoney(summary.totalAmount),
-    ].forEach((value, index) => {
-      document.text(value, columnX(index) + 2, y + 6, {
-        width: columnWidth(index) - 4,
-        align: index === 2 ? 'left' : COLUMNS[index].align,
+    const totalByKey: Record<string, string> = {
+      from: 'GRAND TOTAL:-',
+      km: num(summary.totalDistanceKm, 0),
+      rounds: num(totalRounds),
+      litres: num(totalLitres, 1),
+      hsd: money(summary.fuelAmount),
+      hiring: money(summary.hiringAmount),
+      toll: money(summary.tollAmount),
+      courier: money(summary.courierAmount || 0),
+      total: wholeMoney(summary.totalAmount),
+    };
+    columns.forEach((column, index) => {
+      document.text(totalByKey[column.key] ?? '', columnX(columns, index) + 2, y + 6, {
+        width: columnWidth(columns, index) - 4,
+        align: column.key === 'from' ? 'left' : column.align,
         lineBreak: false,
       });
     });
     y += 18;
+
+    if (manualMultiplier) {
+      document.fillColor('#1f2933').font('Helvetica').fontSize(7.5);
+      document.text('* Hiring multiplier entered on the trip.', PAGE_LEFT, y + 6);
+      y += 14;
+    }
 
     if (summary.otherBillableAmount > 0) {
       document.fillColor('#1f2933').font('Helvetica').fontSize(7.5);

@@ -37,6 +37,9 @@ type TripInput = {
   startKm?: number;
   endKm?: number;
   totalKm?: number;
+  hiringChargePerRound?: number | null;
+  hiringMultiplier?: number | null;
+  courierCharges?: number | null;
   operationalStatus?: ITrip['operationalStatus'];
   operationalInfo?: Record<string, unknown>;
   notes?: string;
@@ -51,12 +54,15 @@ export class TripService {
     const references = await this.validateReferences(data, tripDate);
     const contractVersion = await ContractService.getEffectiveVersion(data.contractId as string, tripDate);
     const totalKm = this.resolveTripDistance(references.route, data.routeId);
-    const rateSnapshot = await this.captureRateSnapshot(references.vehicle, contractVersion, tripDate);
+    const billingInputs = this.billingInputsFrom(data);
+    const rateSnapshot = await this.captureRateSnapshot(references.vehicle, contractVersion, tripDate, billingInputs);
 
+    const { hiringChargePerRound, hiringMultiplier, courierCharges, ...tripData } = data;
     return TripModel.create({
-      ...data,
+      ...tripData,
       tripDate,
       totalKm,
+      ...this.storedBillingInputs(billingInputs),
       vehicleId: references.vehicle._id,
       driverId: references.driver._id,
       firmId: references.firm._id,
@@ -103,9 +109,15 @@ export class TripService {
     const totalKm = references.route
       ? this.resolveTripDistance(references.route, merged.routeId)
       : merged.totalKm;
-    const rateSnapshot = await this.captureRateSnapshot(references.vehicle, effectiveContractVersion, merged.tripDate);
+    const billingInputs = this.billingInputsFrom(data, trip);
+    const rateSnapshot = await this.captureRateSnapshot(references.vehicle, effectiveContractVersion, merged.tripDate, {
+      hiringChargePerRound: billingInputs.hiringChargePerRound,
+      hiringMultiplier: billingInputs.hiringMultiplier,
+      preservedHiringChargePerRound: billingInputs.hiringChargePerRound ?? trip.rateSnapshot?.hiringChargePerRound,
+    });
 
-    Object.assign(trip, data, {
+    const { hiringChargePerRound, hiringMultiplier, courierCharges, ...tripData } = data;
+    Object.assign(trip, tripData, {
       ...merged,
       totalKm,
       vehicleId: references.vehicle._id,
@@ -124,6 +136,7 @@ export class TripService {
         : trip.routeDistanceSnapshot,
       rateSnapshot,
     });
+    this.assignBillingInputs(trip, billingInputs);
     const updatedTrip = await trip.save();
     if (linkedDraftInvoice) {
       await InvoiceService.regenerate(String(linkedDraftInvoice._id), updatedBy);
@@ -212,24 +225,66 @@ export class TripService {
     return route.expectedDistanceKm;
   }
 
-  private static async captureRateSnapshot(vehicle: InstanceType<typeof VehicleModel>, contractVersion: Awaited<ReturnType<typeof ContractService.getEffectiveVersion>>, tripDate: Date) {
+  private static billingInputsFrom(data: TripInput, existing?: ITrip) {
+    const hiringChargePerRound = data.hiringChargePerRound ?? this.decimalNumber(existing?.hiringChargePerRound);
+    const hiringMultiplier = data.hiringMultiplier === null
+      ? undefined
+      : data.hiringMultiplier ?? existing?.hiringMultiplier ?? this.decimalNumber(existing?.rateSnapshot?.hiringMultiplier);
+    const courierWasCleared = data.courierCharges === null || data.courierCharges === 0;
+    const courierCharges = courierWasCleared
+      ? undefined
+      : data.courierCharges ?? this.decimalNumber(existing?.courierCharges);
+    return {
+      hiringChargePerRound,
+      hiringMultiplier: hiringMultiplier && hiringMultiplier > 0 ? hiringMultiplier : undefined,
+      courierCharges: courierCharges && courierCharges > 0 ? courierCharges : undefined,
+    };
+  }
+
+  private static storedBillingInputs(inputs: { hiringChargePerRound?: number; hiringMultiplier?: number; courierCharges?: number }) {
+    return {
+      ...(inputs.hiringChargePerRound !== undefined ? { hiringChargePerRound: inputs.hiringChargePerRound } : {}),
+      ...(inputs.hiringMultiplier !== undefined ? { hiringMultiplier: inputs.hiringMultiplier } : {}),
+      ...(inputs.courierCharges !== undefined ? { courierCharges: inputs.courierCharges } : {}),
+    };
+  }
+
+  private static assignBillingInputs(trip: ITrip, inputs: { hiringChargePerRound?: number; hiringMultiplier?: number; courierCharges?: number }) {
+    if (inputs.hiringChargePerRound !== undefined) trip.hiringChargePerRound = inputs.hiringChargePerRound as never;
+    trip.hiringMultiplier = inputs.hiringMultiplier;
+    trip.courierCharges = inputs.courierCharges as never;
+    if (inputs.hiringMultiplier === undefined) trip.set('hiringMultiplier', undefined);
+    if (inputs.courierCharges === undefined) trip.set('courierCharges', undefined);
+  }
+
+  private static decimalNumber(value: unknown) {
+    if (value === undefined || value === null || value === '') return undefined;
+    const numeric = Number(String(value));
+    return Number.isFinite(numeric) ? numeric : undefined;
+  }
+
+  private static async captureRateSnapshot(
+    vehicle: InstanceType<typeof VehicleModel>,
+    contractVersion: Awaited<ReturnType<typeof ContractService.getEffectiveVersion>>,
+    tripDate: Date,
+    hiring: { hiringChargePerRound?: number; hiringMultiplier?: number; preservedHiringChargePerRound?: string | number },
+  ) {
     const capacityRate = contractVersion.billingRules.capacityRates.find((rate) => Number(rate.capacity) === Number(vehicle.capacity));
     const globalFuelRate = await HsdRateService.resolveRateForDate(tripDate);
     const resolved = RateResolutionService.resolve({
       tripDate,
+      tripHiringChargePerRound: hiring.hiringChargePerRound,
+      preservedHiringChargePerRound: hiring.preservedHiringChargePerRound,
+      tripHiringMultiplier: hiring.hiringMultiplier,
       vehicleRates: vehicle.operationalRates
         ? {
-            hiringChargePerRound: vehicle.operationalRates.hiringChargePerRound,
             averageKmPerLitre: vehicle.operationalRates.averageKmPerLitre,
             fuelRatePerLitre: vehicle.operationalRates.fuelRatePerLitre,
             effectiveFrom: vehicle.operationalRates.effectiveFrom,
           }
         : undefined,
       capacityRate: capacityRate
-        ? {
-            baseHiringRatePerRound: capacityRate.baseHiringRatePerRound,
-            contractualAverageKmPerLitre: capacityRate.contractualAverageKmPerLitre,
-          }
+        ? { contractualAverageKmPerLitre: capacityRate.contractualAverageKmPerLitre }
         : undefined,
       globalFuelRate,
       contractFuelRate: contractVersion.billingRules.fuelRatePerLitre,

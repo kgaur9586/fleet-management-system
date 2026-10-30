@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { BarChart3, Banknote, Boxes, ClipboardList, FileArchive, FileText, Fuel, Gauge, HandCoins, Landmark, Map, Receipt, ReceiptText, Route, Truck, Users, Wallet, X } from 'lucide-react';
 
@@ -28,6 +29,14 @@ const billingLinks = [
 interface SidebarProps { open: boolean; onClose: () => void }
 
 export function Sidebar({ open, onClose }: SidebarProps) {
+  // Lock page scroll behind the drawer on mobile so only the sidebar scrolls.
+  useEffect(() => {
+    if (!open || !window.matchMedia('(max-width: 850px)').matches) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previous; };
+  }, [open]);
+
   return <>
     {open && <button className="sidebar-scrim" aria-label="Close navigation" onClick={onClose} />}
     <aside className={`sidebar ${open ? 'sidebar-open' : ''}`}>

@@ -20,7 +20,6 @@ export interface IVehicle extends Document {
 }
 
 export interface IVehicleOperationalRates {
-  hiringChargePerRound: mongoose.Types.Decimal128;
   averageKmPerLitre: mongoose.Types.Decimal128;
   fuelRatePerLitre?: mongoose.Types.Decimal128;
   effectiveFrom: Date;
@@ -31,7 +30,6 @@ export interface IVehicleOperationalRates {
 
 const vehicleOperationalRatesSchema = new Schema<IVehicleOperationalRates>(
   {
-    hiringChargePerRound: { type: Schema.Types.Decimal128, required: true, min: 0 },
     averageKmPerLitre: { type: Schema.Types.Decimal128, required: true, min: 0 },
     fuelRatePerLitre: { type: Schema.Types.Decimal128, min: 0 },
     effectiveFrom: { type: Date, required: true },

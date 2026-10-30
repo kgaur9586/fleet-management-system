@@ -62,6 +62,7 @@ export class InvoiceService {
       hiringAmount: 0,
       tollAmount: 0,
       otherBillableAmount: 0,
+      courierAmount: 0,
       totalAmount: 0,
     };
 
@@ -80,18 +81,23 @@ export class InvoiceService {
 
       const billingRate = (await HsdRateService.resolveRateForDate(trip.tripDate)) ?? normalizeDecimal((version as any).billingRules?.fuelRatePerLitre);
       const tollAmount = trip.toll && trip.toll.amount ? normalizeDecimal((trip.toll as any).amount) : 0;
+      const tripHiringCharge = trip.hiringChargePerRound ?? trip.rateSnapshot?.hiringChargePerRound;
+      const tripMultiplier = trip.hiringMultiplier ?? trip.rateSnapshot?.hiringMultiplier;
+      const courierAmount = trip.courierCharges;
 
       const result = calculateTripBilling(
         {
           tripId: String(trip._id),
           distanceKm: Number(trip.totalKm),
           tollAmount,
+          hiringMultiplier: tripMultiplier != null ? String(tripMultiplier) : undefined,
+          courierAmount: courierAmount != null ? String(courierAmount) : undefined,
         },
         {
           vehicleId: String(vehicle._id),
           capacity: Number(vehicle.capacity),
           averageKmPerLitre: trip.rateSnapshot?.averageKmPerLitre,
-          baseHiringRatePerRound: trip.rateSnapshot?.hiringChargePerRound,
+          baseHiringRatePerRound: tripHiringCharge != null ? String(tripHiringCharge) : undefined,
         },
         { contractId: String(contract._id) },
         { contractVersionId: String(version._id), version: (version as any).version },
@@ -121,13 +127,21 @@ export class InvoiceService {
           contractVersion: { id: String(version._id), version: (version as any).version },
           distanceKm: result.distanceKm,
           tollAmount: result.tollAmount,
+          courierAmount: result.courierAmount,
         },
         vehicleSnapshot: {
           registrationNumber: vehicle.registrationNumber,
           vehicleType: vehicle.vehicleType,
           capacity: vehicle.capacity,
         },
-        snapshot: result,
+        snapshot: {
+          ...result,
+          baseHiringRateSource: trip.hiringChargePerRound != null
+            ? 'trip'
+            : trip.rateSnapshot?.hiringChargePerRound != null
+              ? trip.rateSnapshot.sources?.hiringChargePerRound ?? 'trip_snapshot'
+              : 'contract_capacity',
+        },
         createdAt: new Date(),
       });
 
@@ -137,6 +151,7 @@ export class InvoiceService {
       summary.hiringAmount += Number(result.hiringAmount || 0);
       summary.tollAmount += Number(result.tollAmount || 0);
       summary.otherBillableAmount += Number(result.otherBillableAmount || 0);
+      summary.courierAmount += Number(result.courierAmount || 0);
       summary.totalAmount += Number(result.totalAmount || 0);
     }
 

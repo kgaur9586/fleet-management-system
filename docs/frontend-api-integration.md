@@ -485,6 +485,9 @@ Create body:
   "endKm": 10589,
   "totalKm": 589,
   "operationalStatus": "completed",
+  "hiringChargePerRound": 4500,
+  "hiringMultiplier": 1.5,
+  "courierCharges": 250,
   "toll": {
     "amount": 4680,
     "reference": "FASTAG-001",
@@ -497,7 +500,15 @@ Create body:
 }
 ```
 
-Required fields are `tripDate`, `vehicleId`, `driverId`, `firmId`, `contractId`, `pickupLocation`, `dropLocation`, and positive `totalKm`. `routeId` may be null. Operational statuses are `planned`, `in_progress`, `completed`, and `cancelled`.
+Required fields are `tripDate`, `vehicleId`, `driverId`, `firmId`, `contractId`, `pickupLocation`, `dropLocation`, positive `totalKm`, and positive `hiringChargePerRound`. `routeId` may be null. Operational statuses are `planned`, `in_progress`, `completed`, and `cancelled`.
+
+`hiringMultiplier` is optional. When sent, it must be a number greater than zero. Omit it to let the KM slab decide. `courierCharges` is optional and must be `>= 0`. Omit it, or send `0`, and the trip stores no courier charge.
+
+On `PATCH`, omit a field to leave it unchanged. `hiringChargePerRound` cannot be cleared. Send `hiringMultiplier: null` to return that trip to the KM slab. Send `courierCharges: null` or `0` to remove courier. The response includes these fields when they are stored, plus `rateSnapshot` (average, fuel rate, hiring charge, and the source of each). The trip response does not contain the invoice total; billing still calculates that on the server.
+
+Invoice generation reads the trip hiring charge, multiplier, and courier. Each line snapshot may include `hiringMultiplierSource` (`trip` or `km_threshold`), `baseHiringRateSource`, and `courierAmount`. `summary.courierAmount` is the sum of line courier amounts. The PDF adds a COURIER column only when that summary is greater than `0`. A trip multiplier is marked with `*` and a footnote. Dashboard vehicle totals include `courierAmount`, which is `0` when that vehicle has no courier in the month.
+
+Vehicle create and update no longer accept `operationalRates.hiringChargePerRound`. They still accept `averageKmPerLitre` and optional `fuelRatePerLitre`.
 
 If both `startKm` and `endKm` are supplied:
 
@@ -578,7 +589,7 @@ This is a target contract summary, not a description of live endpoints.
 | `POST/PATCH /api/v1/trips` | Add optional `tripEndDate`; require `routeId`; server resolves distance from route; keep `startKm`/`endKm` optional and non-authoritative; add trip rate/distance snapshots | Breaking for clients that omit route or rely on submitted `totalKm`; backend/frontend trip workflow must deploy together |
 | `PATCH /api/v1/trips/:id` | **Implemented Phase 1:** reject edits when linked invoice is approved/finalized; draft edits refresh the draft invoice. Reopen unlinks trips. | 409 for locked invoice status |
 | `GET /api/v1/trips/:id` | **Implemented Phase 1:** includes `billingInvoiceStatus` when linked. Future: return `tripEndDate`, `rateSnapshot`, `routeDistanceSnapshot` when present. | Additive |
-| Vehicle create/update | Accept optional `operationalRates` with positive Decimal values | Additive; existing vehicles continue using the contract/global-rate fallback |
+| Vehicle create/update | **Implemented 30 Oct 2026:** `operationalRates` is `averageKmPerLitre` plus optional `fuelRatePerLitre`. Hiring charge is not a vehicle field. | Existing vehicles keep average and fuel. Leftover hiring values are removed only by `npm run remove-vehicle-hiring-charges`. |
 | Route create/update | Require configured distance when route is selected for a new trip | Breaking for routes without distance; owner data cleanup first |
 | Invoice line items | Expose daily calculation details for spanning trips | Breaking for consumers assuming one invoice line per trip; daily allocation rule must be decided first |
 

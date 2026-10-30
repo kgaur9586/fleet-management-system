@@ -63,6 +63,64 @@ describe('calculateTripBilling', () => {
     expect(excluded.tollAmount).toBe('0');
   });
 
+  it('uses a trip hiring multiplier instead of the KM slab', () => {
+    const result = calculateTripBilling(
+      { distanceKm: 600, hiringMultiplier: '1', tollAmount: 0 },
+      { capacity: 29000, baseHiringRatePerRound: '4000', averageKmPerLitre: '2.5' },
+      { contractId: 'c' },
+      { contractVersionId: 'v' },
+      rulesFor(29000, '2.5', '4500'),
+      '95.81',
+    );
+    expect(result.hiringMultiplier).toBe('1');
+    expect(result.hiringMultiplierSource).toBe('trip');
+    expect(result.hiringAmount).toBe('4000');
+    expect(result.baseHiringRate).toBe('4000');
+  });
+
+  it.each([
+    ['1', '4500'],
+    ['1.5', '6750'],
+    ['2', '9000'],
+  ])('calculates hiring at %s x the trip rate', (multiplier, hiringAmount) => {
+    const result = calculateTripBilling(
+      { distanceKm: 100, hiringMultiplier: multiplier },
+      { capacity: 29000, baseHiringRatePerRound: '4500', averageKmPerLitre: '2.5' },
+      { contractId: 'c' },
+      { contractVersionId: 'v' },
+      rulesFor(29000, '2.5', '4500'),
+      '95.81',
+    );
+    expect(result.hiringAmount).toBe(hiringAmount);
+    expect(result.hiringMultiplierSource).toBe('trip');
+  });
+
+  it('adds courier charges once and leaves totals unchanged when courier is absent', () => {
+    const withoutCourier = calculate(310);
+    expect(withoutCourier.courierAmount).toBe('0');
+    expect(withoutCourier.hiringMultiplierSource).toBe('km_threshold');
+    expect(withoutCourier.totalAmount).toBe('16380.44');
+
+    const withCourier = calculateTripBilling(
+      { distanceKm: 310, courierAmount: '250.75' },
+      { capacity: 29000 },
+      { contractId: 'c' },
+      { contractVersionId: 'v' },
+      rulesFor(29000, '2.5', '4500'),
+      '95.81',
+    );
+    expect(withCourier.courierAmount).toBe('250.75');
+    expect(withCourier.totalAmount).toBe('16631.19');
+    expect(withCourier.fuelAmount).toBe(withoutCourier.fuelAmount);
+    expect(withCourier.hiringAmount).toBe(withoutCourier.hiringAmount);
+  });
+
+  it('rejects an invalid hiring multiplier or a negative courier amount', () => {
+    const rules = rulesFor(29000, '2.5', '4500');
+    expect(() => calculateTripBilling({ distanceKm: 100, hiringMultiplier: 0 }, { capacity: 29000 }, { contractId: 'c' }, { contractVersionId: 'v' }, rules, '95.81')).toThrow(/Hiring multiplier/);
+    expect(() => calculateTripBilling({ distanceKm: 100, courierAmount: '-1' }, { capacity: 29000 }, { contractId: 'c' }, { contractVersionId: 'v' }, rules, '95.81')).toThrow(/Courier/);
+  });
+
   it('fails explicitly when capacity or KM mapping is not configured', () => {
     expect(() => calculateTripBilling({ distanceKm: 100 }, { capacity: 34000 }, { contractId: 'c' }, { contractVersionId: 'v' }, rulesFor(29000, '2.5', '4500'), '95.81')).toThrow(BillingRuleConfigurationError);
     expect(() => calculateTripBilling({ distanceKm: 100 }, { capacity: 29000 }, { contractId: 'c' }, { contractVersionId: 'v' }, { ...rulesFor(29000, '2.5', '4500'), kmThresholds: [] }, '95.81')).toThrow(/KM threshold/);

@@ -3,19 +3,22 @@ import { BillingRuleConfigurationError, DecimalInput } from './billing-engine';
 type RateValue = DecimalInput | undefined;
 
 export interface VehicleOperationalRateInput {
-  hiringChargePerRound?: RateValue;
   averageKmPerLitre?: RateValue;
   fuelRatePerLitre?: RateValue;
   effectiveFrom?: Date | string;
 }
 
 export interface CapacityRateFallback {
-  baseHiringRatePerRound?: RateValue;
   contractualAverageKmPerLitre?: RateValue;
 }
 
 export interface OperationalRateResolutionInput {
   tripDate: Date;
+  /** Hiring charge entered on the trip. This is the only source for new trips. */
+  tripHiringChargePerRound?: RateValue;
+  /** Hiring charge already stored on a legacy trip snapshot. Never a vehicle or contract rate. */
+  preservedHiringChargePerRound?: RateValue;
+  tripHiringMultiplier?: RateValue;
   vehicleRates?: VehicleOperationalRateInput | null;
   capacityRate?: CapacityRateFallback | null;
   globalFuelRate?: RateValue;
@@ -23,14 +26,22 @@ export interface OperationalRateResolutionInput {
 }
 
 export interface ResolvedOperationalRates {
-  hiringChargePerRound: string;
+  hiringChargePerRound?: string;
+  hiringMultiplier?: string;
   averageKmPerLitre: string;
   fuelRatePerLitre: string;
   sources: {
-    hiringChargePerRound: 'vehicle' | 'contract_capacity';
+    hiringChargePerRound?: 'trip' | 'trip_snapshot';
+    hiringMultiplier?: 'trip';
     averageKmPerLitre: 'vehicle' | 'contract_capacity';
     fuelRatePerLitre: 'vehicle' | 'global_hsd' | 'contract_fallback';
   };
+}
+
+function presentRate(value: RateValue) {
+  if (value === undefined || value === null) return undefined;
+  const text = value.toString().trim();
+  return text === '' ? undefined : value;
 }
 
 function isEffective(vehicleRates: VehicleOperationalRateInput | null | undefined, tripDate: Date) {
@@ -62,16 +73,25 @@ export class RateResolutionService {
     }
 
     const vehicleRates = isEffective(input.vehicleRates, input.tripDate) ? input.vehicleRates : undefined;
-    const hiringChargePerRound = vehicleRates?.hiringChargePerRound ?? input.capacityRate?.baseHiringRatePerRound;
+    const tripHiringCharge = presentRate(input.tripHiringChargePerRound);
+    const preservedHiringCharge = presentRate(input.preservedHiringChargePerRound);
+    const hiringChargePerRound = tripHiringCharge ?? preservedHiringCharge;
+    const hiringChargeSource = tripHiringCharge !== undefined ? 'trip' as const : preservedHiringCharge !== undefined ? 'trip_snapshot' as const : undefined;
+    const resolvedHiringCharge = hiringChargePerRound !== undefined
+      ? requirePositiveRate(hiringChargePerRound, 'Hiring charge per round')
+      : undefined;
+    const tripMultiplier = presentRate(input.tripHiringMultiplier);
     const averageKmPerLitre = vehicleRates?.averageKmPerLitre ?? input.capacityRate?.contractualAverageKmPerLitre;
     const fuelRatePerLitre = vehicleRates?.fuelRatePerLitre ?? input.globalFuelRate ?? input.contractFuelRate;
 
     return {
-      hiringChargePerRound: requirePositiveRate(hiringChargePerRound, 'Hiring charge per round'),
+      ...(resolvedHiringCharge !== undefined ? { hiringChargePerRound: resolvedHiringCharge } : {}),
+      ...(tripMultiplier !== undefined ? { hiringMultiplier: requirePositiveRate(tripMultiplier, 'Hiring multiplier') } : {}),
       averageKmPerLitre: requirePositiveRate(averageKmPerLitre, 'Average fuel consumption'),
       fuelRatePerLitre: requirePositiveRate(fuelRatePerLitre, 'Fuel rate per litre'),
       sources: {
-        hiringChargePerRound: vehicleRates?.hiringChargePerRound !== undefined ? 'vehicle' : 'contract_capacity',
+        ...(hiringChargeSource !== undefined ? { hiringChargePerRound: hiringChargeSource } : {}),
+        ...(tripMultiplier !== undefined ? { hiringMultiplier: 'trip' as const } : {}),
         averageKmPerLitre: vehicleRates?.averageKmPerLitre !== undefined ? 'vehicle' : 'contract_capacity',
         fuelRatePerLitre: vehicleRates?.fuelRatePerLitre !== undefined
           ? 'vehicle'

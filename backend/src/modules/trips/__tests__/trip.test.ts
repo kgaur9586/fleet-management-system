@@ -102,13 +102,14 @@ const validTrip = () => ({
   startKm: 1000,
   endKm: 1589,
   totalKm: 589,
+  hiringChargePerRound: 4500,
   operationalStatus: 'completed',
   toll: { amount: 4680, reference: 'FASTAG-1' },
   operationalInfo: { loadType: 'milk' },
   notes: 'June test trip',
 });
 
-const createTrip = (payload = validTrip()) => request(app)
+const createTrip = (payload: ReturnType<typeof validTrip> & { hiringMultiplier?: number; courierCharges?: number | null } = validTrip()) => request(app)
   .post('/api/v1/trips')
   .set('Authorization', `Bearer ${token}`)
   .send(payload);
@@ -254,6 +255,36 @@ describe('Trips Module', () => {
       .get('/api/v1/trips?driverId=' + driverId + '&firmId=' + firmId)
       .set('Authorization', `Bearer ${token}`);
     expect(driverFilter.body.data.meta.total).toBe(2);
+  });
+
+  it('stores a trip hiring charge and optional courier charges, and does not read a vehicle hiring charge', async () => {
+    const missingCharge = await createTrip({ ...validTrip(), hiringChargePerRound: undefined as never });
+    expect(missingCharge.status).toBe(400);
+
+    const invalidMultiplier = await createTrip({ ...validTrip(), hiringMultiplier: 0 });
+    expect(invalidMultiplier.status).toBe(400);
+
+    const first = await createTrip({ ...validTrip(), hiringChargePerRound: 3000, hiringMultiplier: 2.25, courierCharges: 250.5 });
+    expect(first.status).toBe(201);
+    expect(first.body.data.rateSnapshot.hiringChargePerRound).toBe('3000');
+    expect(first.body.data.rateSnapshot.sources.hiringChargePerRound).toBe('trip');
+    expect(first.body.data.rateSnapshot.hiringMultiplier).toBe('2.25');
+    expect(String(first.body.data.courierCharges?.$numberDecimal ?? first.body.data.courierCharges)).toBe('250.5');
+
+    const second = await createTrip({ ...validTrip(), tripDate: '2026-06-16', hiringChargePerRound: 8000 });
+    expect(second.status).toBe(201);
+    expect(second.body.data.rateSnapshot.hiringChargePerRound).toBe('8000');
+    expect(second.body.data.courierCharges).toBeUndefined();
+
+    const cleared = await request(app)
+      .patch(`/api/v1/trips/${first.body.data._id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ courierCharges: null, hiringMultiplier: null });
+    expect(cleared.status).toBe(200);
+    expect(cleared.body.data.courierCharges).toBeUndefined();
+    expect(cleared.body.data.hiringMultiplier).toBeUndefined();
+    expect(cleared.body.data.rateSnapshot.hiringChargePerRound).toBe('3000');
+    expect(cleared.body.data.rateSnapshot.hiringMultiplier).toBeUndefined();
   });
 
   it('cancels a trip through soft deletion and excludes it from lists', async () => {
