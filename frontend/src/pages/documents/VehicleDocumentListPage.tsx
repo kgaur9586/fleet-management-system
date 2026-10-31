@@ -26,7 +26,7 @@ const computeStatus = (expiryDate: string): VehicleDocumentStatus => {
   return 'active';
 };
 const statusTone = (status: VehicleDocumentStatus) => status === 'expired' ? 'danger' : status === 'expiring_soon' ? 'warning' : 'success';
-const vehicleLabel = (vehicleId: VehicleDocument['vehicleId']) => typeof vehicleId === 'object' ? vehicleId.registrationNumber : vehicleId;
+const vehicleLabel = (vehicleId: VehicleDocument['vehicleId'], vehicles: Vehicle[]) => typeof vehicleId === 'object' ? vehicleId.registrationNumber : vehicles.find((vehicle) => vehicle._id === vehicleId)?.registrationNumber ?? vehicleId;
 
 export function VehicleDocumentListPage() {
   const navigate = useNavigate();
@@ -52,13 +52,13 @@ export function VehicleDocumentListPage() {
   }
 
   const columns = useMemo<DataTableColumn<VehicleDocument>[]>(() => [
-    { key: 'vehicle', header: 'Vehicle', render: (document) => vehicleLabel(document.vehicleId) },
+    { key: 'vehicle', header: 'Vehicle', render: (document) => <strong>{vehicleLabel(document.vehicleId, vehicles)}</strong> },
     { key: 'type', header: 'Type', render: (document) => <Badge tone="info">{typeOptions.find((option) => option.value === document.documentType)?.label ?? document.documentType}</Badge> },
     { key: 'number', header: 'Document no.', render: (document) => document.documentNumber || <span className="muted">Not set</span> },
     { key: 'expiry', header: 'Expiry', render: (document) => new Date(document.expiryDate).toLocaleDateString('en-IN') },
     { key: 'status', header: 'Status', render: (document) => <Badge tone={statusTone(computeStatus(document.expiryDate))}>{computeStatus(document.expiryDate).replace('_', ' ')}</Badge> },
     { key: 'actions', header: '', render: (document) => <div className="table-actions">{document.fileReference && <Button variant="ghost" icon={<Download size={15} />} aria-label="Download document" onClick={() => void download(document)} />}</div> },
-  ], []);
+  ], [vehicles]);
 
   return <div className="vehicle-page">
     <div className="page-heading"><div><p className="eyebrow">Compliance</p><h1>Vehicle documents</h1><p className="muted">RC, insurance, permit, fitness, and pollution certificates with expiry tracking.</p></div><Button icon={<Plus size={17} />} onClick={() => navigate('/documents/new')}>Upload document</Button></div>

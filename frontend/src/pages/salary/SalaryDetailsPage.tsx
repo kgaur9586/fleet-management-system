@@ -59,6 +59,9 @@ export function SalaryDetailsPage() {
     onError: (caught) => notify.error(caught),
   });
 
+  const storedOtherDeductions = salaryQuery.data?.record.otherDeductions;
+  useEffect(() => { if (storedOtherDeductions !== undefined) setOtherDeductionsAmount(decimalText(storedOtherDeductions)); }, [storedOtherDeductions]);
+
   async function submitDeduction(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (deductionAmount < 0) { notify.error('Deduction amount cannot be negative.'); return; }
@@ -77,9 +80,6 @@ export function SalaryDetailsPage() {
   const { record, recoveries } = salaryQuery.data;
   const driver = typeof record.driverId === 'object' ? record.driverId : null;
   const isPaid = record.paymentStatus === 'paid';
-
-  useEffect(() => { setOtherDeductionsAmount(decimalText(record.otherDeductions)); }, [record.otherDeductions]);
-
   return <div className="vehicle-page">
     <div className="page-heading"><div><Link className="back-link" to="/salary"><ArrowLeft size={15} /> Payroll</Link><p className="eyebrow">Driver settlement</p><h1>{driver?.name ?? 'Driver'} — {record.month}/{record.year}</h1><p className="muted">{record.daysWorked} days worked at {money.format(decimalText(record.dailyWageRate))}/day</p></div><Badge tone={isPaid ? 'success' : 'warning'}>{record.paymentStatus}</Badge></div>
 
@@ -88,7 +88,7 @@ export function SalaryDetailsPage() {
         <div><span>Gross wages</span><strong>{money.format(decimalText(record.grossWages))}</strong></div>
         <div><span>Advance deduction</span><strong>{money.format(decimalText(record.advanceDeduction))}</strong></div>
         <div><span>Other deductions</span><strong>{money.format(decimalText(record.otherDeductions))}</strong></div>
-        <div><span>Net payable</span><strong>{money.format(decimalText(record.netPayable))}</strong></div>
+        <div className="detail-total"><span>Net payable</span><strong>{money.format(decimalText(record.netPayable))}</strong></div>
       </div></Card>
 
       <Card title="Outstanding advance balance">
@@ -110,8 +110,8 @@ export function SalaryDetailsPage() {
       </form>
     </Card>}
 
-    {recoveries.length > 0 && <Card title="Recovery ledger for this payroll"><div className="table-wrap"><table className="data-table"><thead><tr><th>Date</th><th>Advance</th><th>Amount</th></tr></thead><tbody>
-      {recoveries.map((entry) => <tr key={entry._id}><td>{new Date(entry.date).toLocaleDateString('en-IN')}</td><td>{entry.advanceId}</td><td>{money.format(decimalText(entry.amount))}</td></tr>)}
+    {recoveries.length > 0 && <Card title="Recovery ledger for this payroll"><div className="table-wrap"><table className="data-table"><thead><tr><th>Date</th><th>Advance</th><th className="num">Amount</th></tr></thead><tbody>
+      {recoveries.map((entry) => <tr key={entry._id}><td>{new Date(entry.date).toLocaleDateString('en-IN')}</td><td>{entry.advanceId}</td><td className="num">{money.format(decimalText(entry.amount))}</td></tr>)}
     </tbody></table></div></Card>}
 
     {!isPaid ? <Card title="Mark as paid"><form onSubmit={(event) => { event.preventDefault(); markPaidMutation.mutate(); }} className="form-grid">

@@ -53,7 +53,7 @@ export function ExpenseListPage() {
     { key: 'category', header: 'Category', render: (expense) => <Badge tone="info">{categoryLabel(expense.category)}</Badge> },
     { key: 'description', header: 'Description', render: (expense) => <div className="table-primary"><span>{expense.description}</span><small>{vehicleLabel(expense.vehicle) || 'No vehicle'}</small></div> },
     { key: 'vendor', header: 'Vendor', render: (expense) => expense.vendor || <span className="muted">Not set</span> },
-    { key: 'amount', header: 'Amount', render: (expense) => money.format(expense.amount) },
+    { align: 'right', key: 'amount', header: 'Amount', render: (expense) => money.format(expense.amount) },
     { key: 'status', header: 'Payment', render: (expense) => <Badge tone={expense.paymentStatus === 'paid' ? 'success' : expense.paymentStatus === 'partial' ? 'warning' : expense.paymentStatus === 'cancelled' ? 'danger' : 'neutral'}>{expense.paymentStatus ?? 'pending'}</Badge> },
     { key: 'actions', header: '', render: (expense) => <div className="table-actions"><Button variant="ghost" icon={<Edit3 size={15} />} aria-label="Edit expense" onClick={() => navigate(`/expenses/${expense._id}/edit`)} /></div> },
   ], [navigate]);

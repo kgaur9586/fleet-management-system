@@ -1,5 +1,6 @@
 import { Search, X, LoaderCircle, ArrowRight } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { globalSearch, type GlobalSearchResult } from '@/services/globalSearch';
 
@@ -62,7 +63,7 @@ export function GlobalSearchModal({ open, onClose }: GlobalSearchModalProps) {
   const trimmed = term.trim();
   let flatIndex = -1;
 
-  return <div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+  return createPortal(<div className="modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
     <section className="command-palette" role="dialog" aria-modal="true" aria-label="Search workspace">
       <div className="command-palette-input">
         <Search size={17} />
@@ -81,6 +82,7 @@ export function GlobalSearchModal({ open, onClose }: GlobalSearchModalProps) {
           </button>; })}
         </div>)}
       </div>
+      <div className="command-palette-footer" aria-hidden="true"><span><kbd>↑</kbd><kbd>↓</kbd> Navigate</span><span><kbd>Enter</kbd> Open</span><span><kbd>Esc</kbd> Close</span></div>
     </section>
-  </div>;
+  </div>, document.body);
 }

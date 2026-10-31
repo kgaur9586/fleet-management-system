@@ -29,7 +29,7 @@ export function PaymentListPage() {
     { key: 'date', header: 'Date', render: (payment) => new Date(payment.paymentDate).toLocaleDateString('en-IN') },
     { key: 'invoice', header: 'Invoice', render: (payment) => typeof payment.invoiceId === 'object' ? payment.invoiceId.invoiceNumber ?? `${payment.invoiceId.month}/${payment.invoiceId.year}` : payment.invoiceId },
     { key: 'firm', header: 'Firm', render: (payment) => typeof payment.firmId === 'object' ? payment.firmId.billingName ?? payment.firmId.name : payment.firmId },
-    { key: 'amount', header: 'Amount', render: (payment) => money.format(payment.amount) },
+    { align: 'right', key: 'amount', header: 'Amount', render: (payment) => money.format(payment.amount) },
     { key: 'method', header: 'Method', render: (payment) => methodLabel[payment.paymentMethod] },
     { key: 'reference', header: 'Reference', render: (payment) => payment.referenceNumber || <span className="muted">Not set</span> },
     { key: 'status', header: 'Status', render: (payment) => <Badge tone={payment.status === 'received' ? 'success' : payment.status === 'cancelled' ? 'danger' : 'warning'}>{payment.status}</Badge> },

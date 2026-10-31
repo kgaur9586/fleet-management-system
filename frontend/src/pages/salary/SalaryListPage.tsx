@@ -56,10 +56,10 @@ export function SalaryListPage() {
   const columns = useMemo<DataTableColumn<SalaryRecord>[]>(() => [
     { key: 'period', header: 'Period', render: (record) => `${record.month}/${record.year}` },
     { key: 'driver', header: 'Driver', render: (record) => typeof record.driverId === 'object' ? record.driverId.name : record.driverId },
-    { key: 'days', header: 'Days worked', render: (record) => record.daysWorked },
-    { key: 'gross', header: 'Gross wages', render: (record) => money.format(decimalText(record.grossWages)) },
-    { key: 'deduction', header: 'Advance deducted', render: (record) => money.format(decimalText(record.advanceDeduction)) },
-    { key: 'net', header: 'Net payable', render: (record) => <strong>{money.format(decimalText(record.netPayable))}</strong> },
+    { align: 'right', key: 'days', header: 'Days worked', render: (record) => record.daysWorked },
+    { align: 'right', key: 'gross', header: 'Gross wages', render: (record) => money.format(decimalText(record.grossWages)) },
+    { align: 'right', key: 'deduction', header: 'Advance deducted', render: (record) => money.format(decimalText(record.advanceDeduction)) },
+    { align: 'right', key: 'net', header: 'Net payable', render: (record) => <strong>{money.format(decimalText(record.netPayable))}</strong> },
     { key: 'status', header: 'Status', render: (record) => <Badge tone={record.paymentStatus === 'paid' ? 'success' : 'warning'}>{record.paymentStatus}</Badge> },
     { key: 'actions', header: '', render: (record) => <Button variant="ghost" onClick={() => navigate(`/salary/${record._id}`)}>View</Button> },
   ], [navigate]);

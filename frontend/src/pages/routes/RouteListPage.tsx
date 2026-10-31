@@ -19,7 +19,7 @@ export function RouteListPage() {
     { key: 'name', header: 'Route', render: (route) => <div className="table-primary"><Link to={`/routes/${route._id}`}>{route.name}</Link><small>{route.routeCode || 'No route code'}</small></div> },
     { key: 'pickup', header: 'Pickup', render: (route) => route.pickupLocation },
     { key: 'drop', header: 'Drop', render: (route) => route.dropLocation },
-    { key: 'distance', header: 'Expected distance', render: (route) => route.expectedDistanceKm !== undefined ? `${route.expectedDistanceKm} km` : <span className="muted">Not set</span> },
+    { align: 'right', key: 'distance', header: 'Expected distance', render: (route) => route.expectedDistanceKm !== undefined ? `${route.expectedDistanceKm} km` : <span className="muted">Not set</span> },
     { key: 'stops', header: 'Stops', render: (route) => route.intermediateStops?.length ? <Badge tone="info">{route.intermediateStops.length} stops</Badge> : <span className="muted">None</span> },
     { key: 'status', header: 'Status', render: (route) => <StatusBadge status={route.isActive ? 'active' : 'inactive'} /> },
     { key: 'actions', header: '', render: (route) => <div className="table-actions"><Button variant="ghost" icon={<Eye size={15} />} aria-label="View route" onClick={() => navigate(`/routes/${route._id}`)} /><Button variant="ghost" icon={<MoreHorizontal size={15} />} aria-label="Change route status" onClick={() => setTarget(route)} /></div> },

@@ -2,6 +2,7 @@ import { AlertCircle, ArrowRight, ClipboardList, Eye, EyeOff, FileText, LoaderCi
 import { useState, type FormEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { BrandMark } from '@/components/layout/BrandMark';
 import { getApiErrorMessage } from '@/services/apiClient';
 import { notify } from '@/lib/toast';
 
@@ -44,15 +45,15 @@ export function LoginPage() {
       <div className="auth-art-glow auth-art-glow-teal" aria-hidden="true" />
       <div className="auth-art-grid" aria-hidden="true" />
       <svg className="auth-art-route" viewBox="0 0 520 420" fill="none" aria-hidden="true">
-        <path d="M-10 340 C 90 340, 120 220, 220 215 S 330 120, 420 115 S 520 40, 560 10" stroke="rgba(241,173,103,.38)" strokeWidth="2" strokeDasharray="1 11" strokeLinecap="round" />
-        <circle cx="220" cy="215" r="4.5" fill="#f1ad67" opacity=".85" />
-        <circle cx="420" cy="115" r="4.5" fill="#f1ad67" opacity=".6" />
+        <path d="M-10 340 C 90 340, 120 220, 220 215 S 330 120, 420 115 S 520 40, 560 10" stroke="rgba(143,176,255,.35)" strokeWidth="2" strokeDasharray="1 11" strokeLinecap="round" />
+        <circle cx="220" cy="215" r="4.5" fill="#8fb0ff" opacity=".85" />
+        <circle cx="420" cy="115" r="4.5" fill="#8fb0ff" opacity=".6" />
         <circle cx="-10" cy="340" r="5.5" fill="#fff" opacity=".9" />
       </svg>
       <div className="auth-art-top">
         <div className="auth-art-brand">
-          <span className="brand-mark"><ClipboardList size={18} /></span>
-          <div><strong>Fleet Ledger</strong><span>Operations desk</span></div>
+          <BrandMark />
+          <div><strong>Fleet Ledger</strong><span>Operations &amp; billing</span></div>
         </div>
       </div>
       <div className="auth-art-content">
@@ -70,7 +71,7 @@ export function LoginPage() {
     </div>
     <section className="auth-form">
       <div className="auth-form-inner">
-        <div className="brand-mark large"><ClipboardList size={21} /></div>
+        <BrandMark large />
         <p className="eyebrow">Sign in</p>
         <h2>Welcome back</h2>
         <p className="muted">Sign in to access your fleet management workspace.</p>
