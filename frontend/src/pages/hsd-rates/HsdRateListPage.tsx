@@ -41,7 +41,7 @@ export function HsdRateListPage() {
 
   const columns = useMemo<DataTableColumn<HsdRate>[]>(() => [
     { key: 'effectiveFrom', header: 'Effective from', render: (rate) => new Date(rate.effectiveFrom).toLocaleDateString('en-IN') },
-    { key: 'rate', header: 'Rate per litre', render: (rate) => money.format(decimalText(rate.ratePerLitre)) },
+    { align: 'right', key: 'rate', header: 'Rate per litre', render: (rate) => money.format(decimalText(rate.ratePerLitre)) },
     { key: 'notes', header: 'Notes', render: (rate) => rate.notes || <span className="muted">Not set</span> },
   ], []);
 

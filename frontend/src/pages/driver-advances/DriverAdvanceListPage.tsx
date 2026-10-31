@@ -40,7 +40,7 @@ export function DriverAdvanceListPage() {
   const columns = useMemo<DataTableColumn<DriverAdvance>[]>(() => [
     { key: 'date', header: 'Date', render: (advance) => new Date(advance.date).toLocaleDateString('en-IN') },
     { key: 'driver', header: 'Driver', render: (advance) => typeof advance.driverId === 'object' ? advance.driverId.name : advance.driverId },
-    { key: 'amount', header: 'Advance amount', render: (advance) => money.format(decimalText(advance.amount)) },
+    { align: 'right', key: 'amount', header: 'Advance amount', render: (advance) => money.format(decimalText(advance.amount)) },
     { key: 'outstanding', header: 'Outstanding', render: (advance) => {
       const outstanding = decimalText(advance.outstandingAmount);
       return <Badge tone={outstanding === 0 ? 'success' : 'warning'}>{money.format(outstanding)}</Badge>;

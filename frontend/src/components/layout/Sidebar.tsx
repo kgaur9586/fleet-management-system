@@ -1,53 +1,56 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
-import { BarChart3, Banknote, Boxes, ClipboardList, FileArchive, FileText, Fuel, Gauge, HandCoins, Landmark, Map, Receipt, ReceiptText, Route, Truck, Users, Wallet, X } from 'lucide-react';
+import { PanelLeftClose, X } from 'lucide-react';
+import { Tooltip } from '@/components/common/Tooltip';
+import { BrandMark } from './BrandMark';
+import { navigation } from './navigation';
 
-const links = [
-  { to: '/', label: 'Overview', icon: Gauge },
-  { to: '/vehicles', label: 'Vehicles', icon: Truck },
-  { to: '/drivers', label: 'Drivers', icon: Users },
-  { to: '/companies', label: 'Companies', icon: Landmark },
-  { to: '/firms', label: 'Firms', icon: Boxes },
-  { to: '/routes', label: 'Routes', icon: Route },
-  { to: '/contracts', label: 'Contracts', icon: FileText },
-  { to: '/trips', label: 'Trips', icon: Map },
-  { to: '/expenses', label: 'Expenses', icon: Wallet },
-  { to: '/payments', label: 'Payments', icon: Receipt },
-  { to: '/driver-advances', label: 'Driver advances', icon: HandCoins },
-  { to: '/salary', label: 'Payroll', icon: Banknote },
-  { to: '/hsd-rates', label: 'HSD rate', icon: Fuel },
-  { to: '/documents', label: 'Documents', icon: FileArchive },
-  { to: '/reports', label: 'Reports', icon: BarChart3 },
-];
+const MOBILE_QUERY = '(max-width: 900px)';
 
-const billingLinks = [
-  { to: '/billing', label: 'Billing Overview' },
-  { to: '/billing/monthly', label: 'Monthly Billing' },
-  { to: '/billing/invoices', label: 'Invoice History' },
-];
+interface SidebarProps { open: boolean; collapsed: boolean; onClose: () => void; onToggleCollapsed: () => void }
 
-interface SidebarProps { open: boolean; onClose: () => void }
+export function Sidebar({ open, collapsed, onClose, onToggleCollapsed }: SidebarProps) {
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches);
+  const compact = collapsed && !isMobile;
 
-export function Sidebar({ open, onClose }: SidebarProps) {
+  useEffect(() => {
+    const query = window.matchMedia(MOBILE_QUERY);
+    const update = () => setIsMobile(query.matches);
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+
   // Lock page scroll behind the drawer on mobile so only the sidebar scrolls.
   useEffect(() => {
-    if (!open || !window.matchMedia('(max-width: 850px)').matches) return;
+    if (!open || !isMobile) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = previous; };
-  }, [open]);
+    const closeOnEscape = (event: KeyboardEvent) => event.key === 'Escape' && onClose();
+    window.addEventListener('keydown', closeOnEscape);
+    return () => { document.body.style.overflow = previous; window.removeEventListener('keydown', closeOnEscape); };
+  }, [open, isMobile, onClose]);
 
   return <>
     {open && <button className="sidebar-scrim" aria-label="Close navigation" onClick={onClose} />}
-    <aside className={`sidebar ${open ? 'sidebar-open' : ''}`}>
+    <aside className={`sidebar ${open ? 'sidebar-open' : ''} ${collapsed ? 'sidebar-collapsed' : ''}`} aria-label="Primary">
       <div className="brand-row">
-        <div className="brand-mark"><ClipboardList size={18} /></div>
-        <div><strong>Fleet Ledger</strong><span>Operations desk</span></div>
+        <BrandMark />
+        <div><strong>Fleet Ledger</strong><span>Operations &amp; billing</span></div>
         <button className="icon-button mobile-only" onClick={onClose} aria-label="Close navigation"><X size={18} /></button>
       </div>
-      <p className="nav-label">Workspace</p>
-      <nav>{links.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} end={to === '/'} onClick={onClose} className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}><Icon size={18} /><span>{label}</span></NavLink>)}<div className="nav-group"><div className="nav-group-heading"><ReceiptText size={18} /><span>Billing</span></div>{billingLinks.map(({ to, label }) => <NavLink key={to} to={to} end={to === '/billing'} onClick={onClose} className={({ isActive }) => isActive ? 'nav-link nav-sub-link active' : 'nav-link nav-sub-link'}>{label}</NavLink>)}</div></nav>
-      <div className="sidebar-footer"><span className="status-dot" />System foundation ready</div>
+      <nav className="sidebar-nav">
+        {navigation.map((section) => <div className="nav-section" key={section.label}>
+          <p className="nav-label">{section.label}</p>
+          {section.items.map(({ to, label, icon: Icon, end }) => <Tooltip key={to} label={label} side="right" disabled={!compact}>
+            <NavLink to={to} end={end} onClick={onClose} aria-label={compact ? label : undefined} className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}><Icon size={18} strokeWidth={1.9} /><span>{label}</span></NavLink>
+          </Tooltip>)}
+        </div>)}
+      </nav>
+      <div className="sidebar-footer">
+        <Tooltip label="Expand sidebar" side="right" disabled={!compact}>
+          <button type="button" className="sidebar-collapse" onClick={onToggleCollapsed} aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'} aria-pressed={collapsed}><PanelLeftClose size={18} strokeWidth={1.9} /><span>Collapse</span></button>
+        </Tooltip>
+      </div>
     </aside>
   </>;
 }
